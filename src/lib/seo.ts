@@ -3,7 +3,7 @@ import { BRAND, CHAIN, hasGithub } from "@/config/brand";
 
 export const HOME_TITLE = `${BRAND.name} | ${BRAND.slogan.replace(/\.$/, "")}`;
 export const HOME_DESCRIPTION =
-  `${BRAND.name} is a non-custodial trading workspace on ${BRAND.chainName}. Recurring buys and copied trades run from your wallet under visible limits you set.`;
+  `${BRAND.name} is a non-custodial workspace for trading automation on ${BRAND.chainName}. Recurring buys and copied trades run from your wallet under limits you set.`;
 
 /**
  * Per-route metadata in one shape: a unique title, a description written for

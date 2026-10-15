@@ -20,7 +20,7 @@ export default function TokenPage() {
         tag={`${BRAND.symbol} · ${BRAND.chainName}`}
         fade={`${BRAND.symbol}:`}
         ink="a share of the fees, a lower rate, a vote."
-        lead={`${BRAND.symbol} connects holders to the one thing ${BRAND.name} earns: the fee on each order. Every use below is a function of a contract in this repository, not a promise on a slide.`}
+        lead={`${BRAND.symbol} connects holders to the one thing ${BRAND.name} earns: the fee on each order. Every use below is a function in a published contract, not a promise on a slide.`}
         aside={
           <div className="grid gap-3">
             <ContractTag shape="slab" />

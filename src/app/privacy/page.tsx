@@ -22,7 +22,7 @@ export default function PrivacyPage() {
       <h2>Public blockchain data</h2>
       <p>Transactions you send on Robinhood Chain are public by nature. Plans, follows, ideas and stakes are visible on the explorer to anyone.</p>
       <h2>Third parties</h2>
-      <p>The site reads public data from Robinhood Chain RPC providers and OKX market data. Wallets you connect have their own privacy policies.</p>
+      <p>The site reads public data from Robinhood Chain RPC providers and OKX market data. Wallets you connect follow their own privacy rules.</p>
       <h2>Contact</h2>
       <p>
         Questions: <a href={BRAND.x}>{BRAND.xHandle}</a> on X.

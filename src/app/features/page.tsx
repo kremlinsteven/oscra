@@ -23,7 +23,7 @@ export default function FeaturesPage() {
     <main>
       <PageHead
         tag="Features"
-        fade="Three ways to automate."
+        fade="Three tools for automation."
         ink="One set of limits over all of them."
         lead={`${BRAND.name} reads the market, buys on a schedule and copies desks you choose. Each of them runs inside rules you set before money moves, and each shows its state in plain words.`}
       >
@@ -45,7 +45,7 @@ export default function FeaturesPage() {
       <section className="shell grid grid-cols-1 gap-10 py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center">
         <div>
           <span className="tag">Trade review</span>
-          <Headline fade="Read the market," ink="then write the trade." className="mt-6" />
+          <Headline fade="Read the market," ink="then plan the entry." className="mt-6" />
           <ul className="mt-6 space-y-2.5 text-[14.5px] text-ink-2">
             <li>Trend, invalidation, momentum, room overhead and swing size per market</li>
             <li>Position size from your account, your risk rule and the stop distance</li>
@@ -66,7 +66,7 @@ export default function FeaturesPage() {
         </div>
         <div className="order-1 lg:order-2">
           <span className="tag">Recurring buys</span>
-          <Headline fade="Buy the dip" ink="you planned for." className="mt-6" />
+          <Headline fade="Buy weakness" ink="on a plan you wrote." className="mt-6" />
           <ul className="mt-6 space-y-2.5 text-[14.5px] text-ink-2">
             <li>Fixed order size and pace, with a budget that ends the plan</li>
             <li>Price ceiling, drawdown guard and target pause</li>

@@ -4,7 +4,7 @@ import { LANES, RUNBOOK_TERMS } from "@/config/lanes";
 export const FAQ: { q: string; a: string }[] = [
   {
     q: `What is ${BRAND.name}?`,
-    a: `${BRAND.name} is a non-custodial trading workspace on Robinhood Chain. It runs recurring buys and copied trades from your own wallet under limits you write, and gives you a rule-based review of a market before you commit.`,
+    a: `${BRAND.name} is a non-custodial workspace for trading automation on Robinhood Chain. It runs recurring buys and copied trades from your own wallet under limits you write, and gives you a rule-based review of a market before you commit.`,
   },
   {
     q: `How does ${BRAND.name} work?`,

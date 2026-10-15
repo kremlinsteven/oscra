@@ -71,7 +71,7 @@ export function ReviewDesk() {
           <p className="mt-5 text-[13.5px] text-mute">{data ? "No recent low under the price: write the stop from your own rule." : "Waiting for the read."}</p>
         )}
         <p className="hint mt-4">
-          Size = account × risk ÷ stop distance, capped at the account. The review explains the market; your rule sets the size. A stop here is a level to watch: plans buy, they do not sell for
+          Size = account × risk ÷ stop distance, capped at the account. The review explains the market; the size comes from your own rule. A stop here is a level to watch: plans buy, they do not sell for
           you.
         </p>
         {per && per >= 1 ? (

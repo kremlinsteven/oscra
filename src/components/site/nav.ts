@@ -21,12 +21,12 @@ export const FOOTER = {
     { href: "/about", label: "About" },
     { href: "/token", label: "$OSCRA" },
     { href: "/contracts", label: "Contracts" },
-    { href: "/contact", label: "Contact" },
     { href: "/faq", label: "FAQ" },
     { href: "/changelog", label: "Changelog" },
+    { href: "/contact", label: "Contact" },
   ],
-  Legal: [
-    { href: "/privacy", label: "Privacy Policy" },
+  "Fine print": [
+    { href: "/privacy", label: "Privacy" },
     { href: "/terms", label: "Terms of Use" },
     { href: "/risk", label: "Risk Disclosure" },
   ],

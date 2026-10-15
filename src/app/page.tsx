@@ -17,7 +17,7 @@ const PILLARS = [
   {
     n: "01",
     title: "Review before you commit",
-    body: "Pick a market and get a structured read built from live prices: trend, the level where the idea is wrong, momentum, room overhead and swing size. Every line shows the number behind it.",
+    body: "Pick a market and receive a read built from live prices: trend, the level where the idea is wrong, momentum, room overhead and swing size. Every line shows the number behind it.",
     href: "/ai-review",
   },
   {
@@ -286,6 +286,28 @@ export default function HomePage() {
             </tbody>
           </table>
         </div>
+      </section>
+
+      {/* A due buy, step by step. */}
+      <section className="shell grid grid-cols-1 gap-10 py-16 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+        <div>
+          <span className="tag">Inside one order</span>
+          <Headline fade="What happens" ink="when a buy comes due." className="mt-6" />
+        </div>
+        <ol className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {[
+            ["The call", "Someone calls the Runbook for your plan: you from the workspace, or a keeper that collects the small tip you allowed. Calling early does nothing but fail; the contract compares the clock with your next buy time."],
+            ["The checks", "The contract reads the Chainlink price for the market and refuses a stale one. It compares the price with your ceiling, your average entry, your drawdown guard and your target, and pauses the plan instead of buying when one of them says so."],
+            ["The swap", "Exactly one order of USDG moves from your wallet to the Uniswap pool for that market. The minimum it must receive is set from the feed price minus your slippage limit, so a poor pool price makes the whole transaction revert."],
+            ["The result", "The asset arrives at your own address, the plan records what it spent and what it bought, and your average entry updates. The contract finishes holding nothing, and the next buy opens one interval later."],
+          ].map(([t, b], i) => (
+            <li key={t} className="border-t border-line-2 pt-5">
+              <span className="num text-[12px] text-mute">0{i + 1}</span>
+              <h3 className="subhead mt-2">{t}</h3>
+              <p className="mt-2 text-[14.5px] text-mute">{b}</p>
+            </li>
+          ))}
+        </ol>
       </section>
 
       {/* Who it is for. */}
