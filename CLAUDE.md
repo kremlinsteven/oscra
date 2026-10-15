@@ -73,3 +73,10 @@ CA; GitHub public repo + "OSCRA Team" account; point oscra.xyz at Vercel (then D
 assume 1B); fee 0.20% / 0.10% and the market list OK?; "AI review" is rule-based today (no LLM wired; an assistant summary needs
 a paid API + key: say if wanted); exchange connections (Binance/OKX API keys) deliberately not built: confirm on-chain scope;
 "AI Agents" route of the reference replaced by Copy Trading (owner product); keeper bot wanted (hot wallet + ETH)?
+
+## Status (15 Oct 2026, end of build session)
+- Internal: main, not pushed (the lead pushes). Public: ../public main 180e857 (OSCRA Team <team@oscra.xyz>), no remote;
+  built from zero (33 routes = internal), forge 49/49, npm test 33/33, artifacts --check identical, audit five points clean.
+- Server: http://localhost:5120 (next start) left running. Anvil fork and the e2e server are stopped.
+- X statements: 2026/oktober/16/statement/oscra.txt (10, 182-237 chars, 5-gram overlap 0).
+- Nothing deployed. Next: owner deploys OscraRunbook from /deploy (no token needed), pastes the address, verify-deployment.
