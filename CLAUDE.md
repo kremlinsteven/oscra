@@ -119,11 +119,6 @@ Tests: `cd contracts && ./setup.sh && forge test --no-match-path 'test/fork/*'` 
 DNS-hijacked from this Mac) · `npm test` (33). E2E: ../referensi/e2e/fork-up.sh (anvil :8580) -> build-e2e.sh (:5121) ->
 e2e.mjs (12). No keeper built; an optional bot could call runPlan/mirror on due items for the tips.
 
-## Env (names only; values belong to the owner)
-Required: none. Optional: ROBINHOOD_RPC_URL, NEXT_PUBLIC_ROBINHOOD_RPC_URL (private RPC), NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
-(cloud.reown.com), KV_REST_API_URL=https://kv.kingfx.app + KV_REST_API_TOKEN (kv-gateway project `oscra`, not registered yet;
-code prefix "oscra:"). Never on Vercel: NEXT_PUBLIC_OSCRA_TEST_CONTRACTS, NEXT_DIST_DIR, STORE_KEY_PREFIX.
-
 ## Run
 `../referensi/build.sh` (shared build lock, build, restart `next start -p 5120`). Never next dev.
 QA (../referensi/qa): check-layout.mjs (24 routes x 6 widths + signed in: 0 problems), wallet-qa.mjs (32), seo-check.mjs (all
