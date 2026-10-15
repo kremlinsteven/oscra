@@ -54,8 +54,13 @@ Never on Vercel: NEXT_DIST_DIR, STORE_KEY_PREFIX. Old ROBINHOOD_* / WALLETCONNEC
 - curl: 17 indexable routes + /app/* 200, /deploy 404, /api/chain (slot, Pyth SOL, Jupiter xStocks), /api/review lane 0 + 1.
 - ../referensi/qa/wallet-qa.mjs 28/28 (no-wallet dialog, Wallet Standard fake wallet listed, chip/menu/Solscan, signed follow
   and idea stored, forged record 401, Jupiter 50 USDC rule, recurring orders read back, practice, disconnect, navbar 360-1440
-  before/after connect). ../referensi/qa/check-layout.mjs: see result in the status line below.
+  before/after connect). ../referensi/qa/check-layout.mjs: 24 routes x 6 widths signed out + 6 workspace routes signed in
+  (practice and real tabs): 0 layout problems, 0 console errors.
 - Grep for the brief's list is 0 outside this file, matched as whole words ("pons" as a word: NextResponse contains it).
+
+## Status (16 Oct 2026, end of Solana move)
+- Internal main: 1b5d3da (EVM removal), c4d488d (Solana move), docs commit; NOT pushed (the lead pushes). ../public untouched.
+- Server: http://localhost:5120 (next start) running. Nothing deployed; no program exists.
 
 ## Open questions (owner away; defaults chosen)
 - Fee share/discount are practice: a real version needs custody or a program (excluded). Default: practice, labelled.
