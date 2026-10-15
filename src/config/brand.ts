@@ -8,9 +8,9 @@ const CA = "0xxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 /**
  * True once the domain points at this deployment. While false, the production *.vercel.app host is
  * served as is (kept out of search with noindex) instead of redirecting to a domain that does not resolve.
- * Checked 15 Oct 2026: oscra.xyz is registered (Namecheap, created that day) but has no DNS records yet.
+ * Checked 16 Oct 2026: oscra.xyz serves this deployment on Vercel (apex and www answer).
  */
-export const DOMAIN_LIVE = false;
+export const DOMAIN_LIVE = true;
 
 /** Solana address (base58, 32 to 44 characters). The "0xxxx" placeholder fails this on purpose. */
 export const isAddress = (v: string) => /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(v);
