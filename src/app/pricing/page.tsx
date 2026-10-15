@@ -6,7 +6,7 @@ import { pageMeta } from "@/lib/seo";
 export const metadata = pageMeta({
   path: "/pricing",
   title: `Pricing | ${BRAND.name}`,
-  description: `${BRAND.name} has no subscription: a fixed fee per order once ${BRAND.symbol} launches, a lower rate for holders and stakers, and every fee shared with stakers.`,
+  description: `${BRAND.name} has no subscription and adds no fee to real orders: you pay only Jupiter and the Solana network. The ${BRAND.symbol} fee share and holder rate run in practice only.`,
 });
 
 const fee = PRACTICE_TERMS.feeBps / 100;

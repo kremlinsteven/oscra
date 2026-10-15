@@ -89,7 +89,7 @@ export const appLd = {
   name: BRAND.name,
   url: BRAND.url,
   applicationCategory: "FinanceApplication",
-  operatingSystem: "Any (web browser with an EVM wallet)",
+  operatingSystem: "Any (web browser with a Solana wallet)",
   description: `Recurring buys, copied trades and a rule-based trade review that run from your own wallet on ${CHAIN.name}.`,
   publisher: { "@id": `${BRAND.url}/#org` },
 };

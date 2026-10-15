@@ -10,7 +10,7 @@ import { USDC, explorerTx } from "@/config/brand";
 import { LANES, LIMITS, RECURRING, laneByMint } from "@/config/lanes";
 import { explain, waitForSignature } from "@/lib/client";
 import { span } from "@/lib/format";
-import { b64ToBytes, bytesToB64, cancelRecurring, createRecurring, executeRecurring, listRecurring, type RecurringOrder } from "@/lib/jupiter";
+import { b64ToBytes, bytesToB64, cancelRecurring, createRecurring, executeRecurring, fillCount, listRecurring, type RecurringOrder } from "@/lib/jupiter";
 import { averageEntry, openPlan, runPlan, setPlanState } from "@/lib/practice";
 
 export function DcaDesk() {
@@ -51,7 +51,7 @@ function RealPlans() {
     listRecurring(address, "active")
       .then((o) => !off && setActive(o))
       .catch(() => !off && setActive([]));
-    listRecurring(address, "history")
+    listRecurring(address, "history", 1)
       .then((o) => !off && setHistory(o.slice(0, 10)))
       .catch(() => {});
     return () => {
@@ -215,7 +215,7 @@ function OrderCard({ o, done, disabled, cancelling, onCancel }: { o: RecurringOr
           ["Spent", `${fmt(used)} / ${fmt(deposited)}`],
           ["Bought", qtyFmt(got)],
           ["Average", avg ? `$${fmt(avg)}` : "–"],
-          ["Fills", String(o.trades?.length ?? "–")],
+          ["Fills", String(fillCount(o) ?? "–")],
         ].map(([k, v]) => (
           <div key={k}>
             <dt className="label">{k}</dt>

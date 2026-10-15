@@ -204,10 +204,15 @@ export async function applyRecord(d: RecordDeps, r: SignedRecord): Promise<strin
       const ideas = (await store.range("ideas", MAX_IDEAS)).map((x) => parse<Idea | null>(x, null)).filter(Boolean) as Idea[];
       const idea = ideas.find((i) => i.id === p.signal);
       if (!idea) throw new RecordError("Unknown idea.");
+      // Only an idea from a desk this wallet followed before it was posted can be copied, and only once.
+      const follow = parse<FollowRecord[]>(await store.get(`follows:${w}`), []).find((f) => f.leader === idea.leader);
+      if (!follow || idea.at < follow.since) throw new RecordError("You did not follow this desk when the idea was posted.");
+      if (parse<Record<string, string>>(await store.get(`handled:${w}`), {})[idea.id]) throw new RecordError("That idea was already handled.");
       const tx = await d.readTx(p.signature, w);
       if (!tx) throw new RecordError("Transaction not found yet. Try again in a few seconds.", 409);
       if (!tx.ok || tx.feePayer !== w) throw new RecordError("That transaction failed or was not paid by this wallet.");
       if (tx.blockTime !== null && now - tx.blockTime > 3600) throw new RecordError("Only a swap from the last hour can be recorded.");
+      if (tx.blockTime !== null && tx.blockTime < idea.at) throw new RecordError("That swap happened before the idea was posted.");
       const lane = LANES[idea.lane];
       const dUsdc = tx.deltas[USDC.mint] ?? 0n;
       const dAsset = tx.deltas[lane.mint] ?? 0n;

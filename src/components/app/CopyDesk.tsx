@@ -5,7 +5,7 @@ import { VersionedTransaction } from "@solana/web3.js";
 import { useMode, useWorkspace } from "@/components/app/Workspace";
 import { Empty, Field, LaneSelect, ModeTabs, NumberInput, Section, fmt, n, qtyFmt } from "@/components/app/bits";
 import { useWallet } from "@/components/wallet/WalletProvider";
-import { USDC, explorerAddress, explorerTx, isAddress, shortAddress } from "@/config/brand";
+import { USDC, WSOL_MINT, explorerAddress, explorerTx, isAddress, shortAddress } from "@/config/brand";
 import { LANES, LIMITS } from "@/config/lanes";
 import { copyWindow as realWindow, holdingOf, planCopy, spentToday } from "@/lib/copy-rules";
 import { span } from "@/lib/format";
@@ -15,6 +15,7 @@ import type { FollowTerms } from "@/lib/records-shared";
 
 type Terms = { perSignal: string; dayCap: string; maxCost: string; delayH: string; slip: string; chase: string; stop: string };
 const ALL = (1 << LANES.length) - 1;
+const SOL_FEE_RESERVE = 0.02;
 
 export function CopyDesk() {
   const [mode, setMode] = useMode("copy");
@@ -146,7 +147,9 @@ function RealCopy() {
     if (!idea || !address) return;
     const lane = LANES[idea.lane];
     const fw = follows.find((x) => x.leader === idea.leader);
-    const walletQty = wallet?.assets[idea.lane] != null ? Number(wallet.assets[idea.lane]) / 10 ** lane.decimals : null;
+    // Selling SOL keeps a small reserve for network fees and token-account rent.
+    const reserve = lane.mint === WSOL_MINT ? SOL_FEE_RESERVE : 0;
+    const walletQty = wallet?.assets[idea.lane] != null ? Math.max(0, Number(wallet.assets[idea.lane]) / 10 ** lane.decimals - reserve) : null;
     const plan = planCopy({ idea, follow: fw, handled: mine?.handled[idea.id], fills, ideas, price: price(idea.lane), walletQty, now: wallClock() });
     if (!plan.ok) return notify({ kind: "error", text: `Copy idea #${idea.id}: ${plan.reason}` });
     const usdcHave = wallet?.usdc != null ? Number(wallet.usdc) / 1e6 : null;

@@ -5,6 +5,7 @@ import { memoryStore } from "@/lib/server/memstore";
 import type { RecordDeps, TxFacts } from "@/lib/server/records";
 import { getSnapshot } from "@/lib/server/snapshot-cache";
 import { getStore, type Store } from "@/lib/server/store";
+import { txFacts, type ParsedTx } from "@/lib/server/txfacts";
 
 /*
  * Real readers for the records logic: KV when configured (kv-gateway, keys prefixed "oscra:"), else a bounded
@@ -19,22 +20,15 @@ export function recordStore(): Store {
   return getStore() ?? (mem ??= memoryStore());
 }
 
-type ParsedTx = {
-  blockTime: number | null;
-  meta: { err: unknown; preTokenBalances?: Bal[]; postTokenBalances?: Bal[] } | null;
-  transaction: { message: { accountKeys: ({ pubkey: string; signer: boolean } | string)[] } };
-};
-type Bal = { mint: string; owner?: string; uiTokenAmount: { amount: string } };
-
+/** A confirmed swap can take a moment to be served by getTransaction, so a miss is retried briefly. */
 async function readTx(signature: string, wallet: string): Promise<TxFacts | null> {
-  const tx = await rpc<ParsedTx | null>("getTransaction", [signature, { encoding: "jsonParsed", commitment: "confirmed", maxSupportedTransactionVersion: 0 }]).catch(() => null);
-  if (!tx || !tx.meta) return null;
-  const first = tx.transaction.message.accountKeys[0];
-  const feePayer = typeof first === "string" ? first : first.pubkey;
-  const deltas: Record<string, bigint> = {};
-  for (const b of tx.meta.postTokenBalances ?? []) if (b.owner === wallet) deltas[b.mint] = (deltas[b.mint] ?? 0n) + BigInt(b.uiTokenAmount.amount);
-  for (const b of tx.meta.preTokenBalances ?? []) if (b.owner === wallet) deltas[b.mint] = (deltas[b.mint] ?? 0n) - BigInt(b.uiTokenAmount.amount);
-  return { ok: tx.meta.err === null, feePayer, blockTime: tx.blockTime, deltas };
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) await new Promise((r) => setTimeout(r, 1500));
+    const tx = await rpc<ParsedTx | null>("getTransaction", [signature, { encoding: "jsonParsed", commitment: "confirmed", maxSupportedTransactionVersion: 0 }]).catch(() => null);
+    const facts = txFacts(tx, wallet);
+    if (facts) return facts;
+  }
+  return null;
 }
 
 async function tokenBalance(wallet: string): Promise<bigint | null> {

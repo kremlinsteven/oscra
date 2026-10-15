@@ -73,7 +73,7 @@ Environment variables are optional; the site works with none:
 | Name | Purpose |
 |---|---|
 | `SOLANA_RPC_URL` | Server-side Solana RPC (for example a Helius or QuickNode URL). Defaults to the public mainnet RPC. |
-| `NEXT_PUBLIC_SOLANA_RPC_URL` | Browser RPC the wallet sends transactions through. Defaults to the public mainnet RPC. |
+| `NEXT_PUBLIC_SOLANA_RPC_URL` | Browser RPC the wallet sends transactions through. Defaults to `https://solana-rpc.publicnode.com` (the official public mainnet RPC refuses browser requests). |
 | `KV_REST_API_URL`, `KV_REST_API_TOKEN` | Redis REST store for records and rate limits. Without it, a local run keeps records in memory; a deployment refuses writes (503) until it is set. |
 | `TRUST_PROXY_HEADERS` | Set to `1` behind a proxy you control so per-IP limits read the forwarded address (automatic on Vercel). |
 

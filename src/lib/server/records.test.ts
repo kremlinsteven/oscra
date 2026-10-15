@@ -25,6 +25,8 @@ function deps(store: ReturnType<typeof memoryStore>, over: Partial<RecordDeps> =
   return { store, now: () => T0, price: async () => 100, tokenBalance: async () => 600_000n * 10n ** 6n, readTx: async () => null, tokenLive: true, tokenDecimals: 6, ...over };
 }
 
+const FOLLOW_TERMS = { perSignal: 25, dayCap: 100, maxCost: 0, laneMask: 3, reviewDelay: 0, slipBps: 100, chaseBps: 200, stopBps: 0 };
+
 const rejects = (p: Promise<unknown>, re: RegExp) => assert.rejects(p, (e: unknown) => e instanceof RecordError && re.test(e.message));
 
 test("a correctly signed record verifies once", async () => {
@@ -99,16 +101,41 @@ test("a copied fill must be this wallet's own successful swap in the idea's dire
   const s = memoryStore(() => T0 * 1000);
   const lane = LANES[1];
   const sig = "5".repeat(88);
-  let facts = { ok: true, feePayer: WALLET, blockTime: T0 - 10, deltas: { [USDC.mint]: -25_000_000n, [lane.mint]: 11_000_000n } as Record<string, bigint> };
+  let facts = { ok: true, feePayer: WALLET, blockTime: T0, deltas: { [USDC.mint]: -25_000_000n, [lane.mint]: 11_000_000n } as Record<string, bigint> };
   const d = deps(s, { readTx: async () => facts });
   await applyRecord(d, await signed(s, "post-idea", { lane: 1, sell: false, weightBps: 10_000 }, T0, other));
+  // Not following the desk: refused before the transaction is even read.
+  await rejects(applyRecord(d, await signed(s, "record-fill", { signal: 1, signature: sig })), /did not follow this desk/);
+  await applyRecord(d, await signed(s, "follow", { leader: LEADER, terms: FOLLOW_TERMS }));
   facts = { ...facts, feePayer: LEADER };
   await rejects(applyRecord(d, await signed(s, "record-fill", { signal: 1, signature: sig })), /not paid by this wallet/);
   facts = { ...facts, feePayer: WALLET, deltas: { [USDC.mint]: 25_000_000n, [lane.mint]: -1n } };
   await rejects(applyRecord(d, await signed(s, "record-fill", { signal: 1, signature: sig })), /not a purchase/);
   facts = { ...facts, deltas: { [USDC.mint]: -25_000_000n, [lane.mint]: 11_000_000n } };
   assert.match(await applyRecord(d, await signed(s, "record-fill", { signal: 1, signature: sig })), /bought 0\.110000 NVDAx for 25\.00 USDC/);
-  await rejects(applyRecord(d, await signed(s, "record-fill", { signal: 1, signature: sig })), /already recorded/);
+  await rejects(applyRecord(d, await signed(s, "record-fill", { signal: 1, signature: sig })), /already handled/);
+  // The same swap cannot be claimed for a second idea either.
+  await applyRecord(d, await signed(s, "post-idea", { lane: 1, sell: false, weightBps: 10_000 }, T0, other));
+  await rejects(applyRecord(d, await signed(s, "record-fill", { signal: 2, signature: sig })), /already recorded/);
+});
+
+test("a fill is refused for an idea posted before the follow, for a swap older than the idea, and for a skipped idea", async () => {
+  const s = memoryStore(() => T0 * 1000);
+  const lane = LANES[1];
+  const buy = { ok: true, feePayer: WALLET, blockTime: T0 + 20, deltas: { [USDC.mint]: -25_000_000n, [lane.mint]: 11_000_000n } as Record<string, bigint> };
+  let facts = buy;
+  const at = (t: number) => deps(s, { now: () => t, readTx: async () => facts });
+  await applyRecord(at(T0), await signed(s, "post-idea", { lane: 1, sell: false, weightBps: 10_000 }, T0, other));
+  await applyRecord(at(T0 + 10), await signed(s, "follow", { leader: LEADER, terms: FOLLOW_TERMS }, T0 + 10));
+  await rejects(applyRecord(at(T0 + 30), await signed(s, "record-fill", { signal: 1, signature: "6".repeat(88) }, T0 + 30)), /did not follow this desk/);
+  await applyRecord(at(T0 + 40), await signed(s, "post-idea", { lane: 1, sell: false, weightBps: 10_000 }, T0 + 40, other));
+  facts = { ...buy, blockTime: T0 + 35 };
+  await rejects(applyRecord(at(T0 + 50), await signed(s, "record-fill", { signal: 2, signature: "7".repeat(88) }, T0 + 50)), /before the idea/);
+  await applyRecord(at(T0 + 50), await signed(s, "skip", { signal: 2 }, T0 + 50));
+  facts = { ...buy, blockTime: T0 + 45 };
+  await rejects(applyRecord(at(T0 + 60), await signed(s, "record-fill", { signal: 2, signature: "7".repeat(88) }, T0 + 60)), /already handled/);
+  // The refused fill did not burn the signature: nothing about it was stored.
+  assert.equal(await s.get("fill-sig:" + "7".repeat(88)), null);
 });
 
 test("votes weigh the balance at vote time, once per wallet; polls need the proposer minimum", async () => {

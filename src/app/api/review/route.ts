@@ -41,5 +41,7 @@ export async function GET(request: Request) {
   if (pending) await pending;
   const value = cache.get(lane);
   if (!value) return NextResponse.json({ error: "Price history is not available right now." }, { status: 503, headers: { "cache-control": "no-store" } });
-  return NextResponse.json({ ...value.value, cachedAt: value.at }, { headers: { "cache-control": "no-store" } });
+  // The free candle sources rate-limit shared hosting IPs, so a good review is also cached at the edge: every
+  // serverless instance then reuses it instead of asking upstream again.
+  return NextResponse.json({ ...value.value, cachedAt: value.at }, { headers: { "cache-control": "public, max-age=60, s-maxage=300, stale-while-revalidate=900" } });
 }

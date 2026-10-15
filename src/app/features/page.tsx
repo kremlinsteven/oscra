@@ -7,7 +7,7 @@ import { pageMeta } from "@/lib/seo";
 export const metadata = pageMeta({
   path: "/features",
   title: `Features | ${BRAND.name}`,
-  description: `Everything in ${BRAND.name}: trade review from live prices, recurring buys, copy desks with caps, a portfolio view, practice mode and $OSCRA staking.`,
+  description: `Everything in ${BRAND.name}: trade review from live prices, recurring buys, copy desks with caps, a portfolio view, practice mode, $OSCRA polls and practice staking.`,
 });
 
 const STAGES = [

@@ -69,14 +69,23 @@ export type RecurringOrder = {
   openTx: string;
   closeTx?: string;
   userClosed?: boolean;
-  trades?: { inputAmount: string; outputAmount: string; txId: string; confirmedAt: string }[];
+  trades?: { inputAmount: string; outputAmount: string; txId: string; confirmedAt: string; action?: string }[];
 };
 
-export async function listRecurring(user: string, status: "active" | "history") {
-  const q = new URLSearchParams({ user, orderStatus: status, recurringType: "time", includeFailedTx: "false", page: "1" });
-  const body = await jfetch<{ time?: RecurringOrder[] }>(`/recurring/v1/getRecurringOrders?${q}`);
-  return body.time ?? [];
+/** Jupiter pages these 10 at a time; up to `maxPages` pages are read. */
+export async function listRecurring(user: string, status: "active" | "history", maxPages = 5) {
+  const out: RecurringOrder[] = [];
+  for (let page = 1; page <= maxPages; page++) {
+    const q = new URLSearchParams({ user, orderStatus: status, recurringType: "time", includeFailedTx: "false", page: String(page) });
+    const body = await jfetch<{ time?: RecurringOrder[]; totalPages?: number }>(`/recurring/v1/getRecurringOrders?${q}`);
+    out.push(...(body.time ?? []));
+    if (!(typeof body.totalPages === "number" && page < body.totalPages)) break;
+  }
+  return out;
 }
+
+/** Filled cycles of an order (the trade list may also carry other actions). */
+export const fillCount = (o: RecurringOrder) => (o.trades ? o.trades.filter((t) => !t.action || t.action === "Fill").length : null);
 
 export type Quote = { inAmount: string; outAmount: string; otherAmountThreshold: string; priceImpactPct: string; slippageBps: number; routePlan?: { swapInfo?: { label?: string } }[] } & Record<string, unknown>;
 

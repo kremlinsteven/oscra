@@ -76,7 +76,7 @@ export default function ContractsPage() {
         </div>
         <p className="mt-4 text-[13.5px] text-ink-2">
           Every plan is priced in USDC <Addr v={USDC.mint} token />. xStocks mints are Token-2022 with issuer controls (permanent delegate, pause, scaled UI amount for dividends): that is the issuer&apos;s power, not
-          {" "}{BRAND.name}&apos;s. A record can optionally be anchored with the SPL Memo program <Addr v={MEMO_PROGRAM} />.
+          {" "}{BRAND.name}&apos;s. Anchoring a record&apos;s hash on-chain with the SPL Memo program <Addr v={MEMO_PROGRAM} /> is planned, not built yet: records live on the server, each one signed by its wallet.
         </p>
       </section>
     </main>

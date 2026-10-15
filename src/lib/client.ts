@@ -1,4 +1,4 @@
-import { BRAND, CHAIN, USDC, isAddress } from "@/config/brand";
+import { BRAND, CHAIN, USDC, WSOL_MINT, isAddress } from "@/config/brand";
 import { LANES } from "@/config/lanes";
 
 /*
@@ -75,8 +75,8 @@ export async function readWallet(owner: string): Promise<Wallet> {
   return {
     sol: typeof sol === "number" ? BigInt(sol) : null,
     usdc: tokens[0],
-    // Wrapped SOL lane: the wallet's native SOL counts too.
-    assets: LANES.map((l, i) => tokens[i + 1]),
+    // Wrapped SOL lane: the wallet's native SOL counts too (Jupiter wraps and unwraps it inside the swap).
+    assets: LANES.map((l, i) => (l.mint === WSOL_MINT && typeof sol === "number" ? (tokens[i + 1] ?? 0n) + BigInt(sol) : tokens[i + 1])),
     oscra: isAddress(BRAND.ca) ? tokens[mints.length - 1] : null,
   };
 }

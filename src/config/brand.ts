@@ -47,6 +47,11 @@ export const hasGithub = /^https:\/\/github\.com\/[^/]+/.test(BRAND.github);
 // Public endpoints are the default. An operator can point the site at a private RPC with SOLANA_RPC_URL (server) /
 // NEXT_PUBLIC_SOLANA_RPC_URL (browser). Both are optional.
 const PUBLIC_RPC = "https://api.mainnet-beta.solana.com";
+/**
+ * Browser default. api.mainnet-beta.solana.com answers 403 to any request that carries a browser Origin, so
+ * wallet sends, blockhash and balance reads from the page must use an endpoint that allows browsers.
+ */
+const BROWSER_RPC = "https://solana-rpc.publicnode.com";
 
 export const CHAIN = {
   name: "Solana",
@@ -54,7 +59,8 @@ export const CHAIN = {
   nativeSymbol: "SOL",
   decimals: 9,
   publicRpc: PUBLIC_RPC,
-  rpc: process.env.NEXT_PUBLIC_SOLANA_RPC_URL || PUBLIC_RPC,
+  /** Browser RPC (wallet adapter Connection and direct browser reads). */
+  rpc: process.env.NEXT_PUBLIC_SOLANA_RPC_URL || BROWSER_RPC,
   /** Second public endpoint for server reads when the first one fails. */
   fallbackRpc: "https://solana-rpc.publicnode.com",
   explorer: "https://solscan.io",
