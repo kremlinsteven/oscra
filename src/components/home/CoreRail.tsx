@@ -7,12 +7,12 @@ const LEFT = [
   { icon: Users, k: "Follows", v: "Copied ideas inside caps" },
 ];
 const RIGHT = [
-  { icon: Gauge, k: "Feeds", v: "Chainlink price per lane" },
+  { icon: Gauge, k: "Prices", v: "Pyth or Jupiter, by mint" },
   { icon: ShieldHalf, k: "Limits", v: "Ceilings, guards, caps, delays" },
   { icon: Wallet, k: "Wallet", v: "Assets land in your address" },
 ];
 
-/** Inputs on the left, checks on the right, the Runbook in the middle. */
+/** Inputs on the left, checks on the right, your wallet in the middle. */
 export function CoreRail() {
   const Item = ({ icon: Icon, k, v }: (typeof LEFT)[number]) => (
     <div className="card flex items-center gap-3 p-4">
@@ -34,8 +34,8 @@ export function CoreRail() {
       </div>
       <div className="panel flex flex-col items-center px-6 py-8 text-center">
         <Mark size={72} />
-        <p className="mt-4 text-[16px] font-semibold tracking-[0.06em]">OSCRA RUNBOOK</p>
-        <p className="mt-2 text-[12.5px] text-night-mute">Pull one order · check the feed · swap · deliver to you. One transaction, no balance kept.</p>
+        <p className="mt-4 text-[16px] font-semibold tracking-[0.06em]">YOUR SIGNATURE</p>
+        <p className="mt-2 text-[12.5px] text-night-mute">Check your limits · build the Jupiter order · you sign · it lands in your wallet. No balance kept.</p>
       </div>
       <div className="grid gap-3">
         {RIGHT.map((x) => (

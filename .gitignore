@@ -28,3 +28,7 @@ next-env.d.ts
 /.next-e2e*/
 
 
+
+# Anchor / Rust build output
+/target/
+/test-ledger/

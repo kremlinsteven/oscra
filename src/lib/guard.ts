@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { Store } from "@/lib/server/store";
-import { clientIp, trustsProxyHeaders } from "@/lib/netkey";
+import { DIRECT, clientIp, trustsProxyHeaders } from "@/lib/netkey";
 import { spend } from "@/lib/ratelimit";
 
 export { clientIp };
@@ -91,3 +91,14 @@ export async function allowPublic(store: Store, request: Request, bucket: string
 
 export const tooMany = () => NextResponse.json({ error: "Too many requests. Slow down a little." }, { status: 429 });
 export const badBody = () => NextResponse.json({ error: "Invalid or oversized request body." }, { status: 400 });
+
+/**
+ * One budget rule for every public route: a known client IP gets its own per-IP budget; when the IP cannot be
+ * trusted (no proxy headers) every caller shares one generous site-wide ceiling instead, so a forged header
+ * cannot mint fresh budgets. Returns true when the request may proceed.
+ */
+export async function budget(store: Store | null, request: Request, bucket: string, units: number, perIp: number, site: number, windowSec: number) {
+  const ip = clientIp(request);
+  if (ip === DIRECT) return spend(store, `${bucket}:site`, "all", units, site, windowSec);
+  return spend(store, bucket, ip, units, perIp, windowSec);
+}

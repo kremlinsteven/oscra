@@ -1,30 +1,30 @@
 import { BRAND } from "@/config/brand";
-import { LANES, RUNBOOK_TERMS } from "@/config/lanes";
+import { LANES, PRACTICE_TERMS, RECURRING } from "@/config/lanes";
 
 export const FAQ: { q: string; a: string }[] = [
   {
     q: `What is ${BRAND.name}?`,
-    a: `${BRAND.name} is a non-custodial workspace for trading automation on Robinhood Chain. It runs recurring buys and copied trades from your own wallet under limits you write, and gives you a rule-based review of a market before you commit.`,
+    a: `${BRAND.name} is a non-custodial workspace for trading automation on Solana. It runs recurring buys and copied trades from your own wallet under limits you write, and gives you a rule-based review of a market before you commit.`,
   },
   {
     q: `How does ${BRAND.name} work?`,
-    a: "You approve the OscraRunbook contract to spend USDG from your wallet. Each plan or follow stores your limits in that contract. When a buy is due, anyone may trigger it; the contract checks the Chainlink price and your rules, pulls exactly one order, swaps it on Uniswap and sends the asset to your wallet in the same transaction.",
+    a: `Recurring buys are Jupiter Recurring orders your wallet signs: the USDC sits in an order account only you can cancel, and Jupiter fills it on schedule inside your price range. Copied trades are Jupiter swaps: when a desk you follow posts an idea, ${BRAND.name} checks your limits and builds the swap, and your wallet decides.`,
   },
   {
     q: `Does ${BRAND.name} ever hold my money?`,
-    a: "No. The Runbook ends every transaction holding nothing, which the test suite checks after thousands of random actions. It can only use the allowance you gave it; set that to zero and everything stops.",
+    a: `No. ${BRAND.name} has no smart contract, no vault and no server wallet. Real orders live in Jupiter accounts tied to your wallet; cancelling a recurring order returns the unspent USDC and everything bought.`,
   },
   {
     q: "Which markets can I buy?",
-    a: `${LANES.map((l) => l.symbol).join(", ")}: ETH and nine official Robinhood stock tokens, each priced by its Chainlink feed and traded against USDG on its deepest Uniswap v3 pool.`,
+    a: `${LANES.map((l) => l.symbol).join(", ")}: SOL and nine xStocks tokenized shares on Solana, matched by mint (never by ticker), priced by Pyth or Jupiter and bought with USDC.`,
   },
   {
     q: `Which network is ${BRAND.name} on?`,
-    a: "Robinhood Chain mainnet, chain id 4663. Connecting a wallet on this site adds the network for you.",
+    a: "Solana mainnet. Any Wallet Standard wallet works: Phantom, Solflare, Backpack and others are detected automatically.",
   },
   {
     q: "Can I connect my Binance, Coinbase or OKX account?",
-    a: `Not in this release. ${BRAND.name} works with a self-custody wallet on Robinhood Chain. If exchange connections are added later, keys would stay in your browser and never reach our servers; until then the site asks for none.`,
+    a: `Not in this release. ${BRAND.name} works with a self-custody Solana wallet. If exchange connections are added later, keys would stay in your browser and never reach our servers; until then the site asks for none.`,
   },
   {
     q: "Is the trade review written by AI?",
@@ -32,18 +32,18 @@ export const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "Who runs my due buys?",
-    a: "Anyone can: you from the workspace, or a keeper bot that collects the tip you set. No OSCRA keeper is running yet, so plan to run buys yourself or set a tip.",
+    a: "Jupiter does. Once your recurring order is created, Jupiter's own keepers fill each order on schedule; you do not need to keep the site open. Copied trades are different: each one waits for your signature.",
   },
   {
     q: "What does it cost?",
-    a: `Nothing until ${BRAND.symbol} launches and the staking contract is linked. After that ${RUNBOOK_TERMS.feeBps / 100}% per order, or ${RUNBOOK_TERMS.holderFeeBps / 100}% for wallets that hold or stake enough ${BRAND.symbol}. Every fee goes to ${BRAND.symbol} stakers.`,
+    a: `${BRAND.name} charges nothing on real orders. Jupiter keeps ${RECURRING.jupiterFeeBps / 100}% of each filled recurring order, and every transaction pays a small Solana fee. The ${BRAND.symbol} fee share (${PRACTICE_TERMS.feeBps / 100}% / ${PRACTICE_TERMS.holderFeeBps / 100}%) runs as practice only.`,
   },
   {
     q: `How do I buy ${BRAND.symbol}?`,
-    a: `${BRAND.symbol} launches on Pons, the Robinhood Chain launchpad. Use only the contract address published on the token page of this site and on X ${BRAND.xHandle}.`,
+    a: `${BRAND.symbol} launches on pump.fun, on Solana. Use only the mint address published on the token page of this site and on X ${BRAND.xHandle}.`,
   },
   {
     q: "What is practice mode?",
-    a: "Every workspace screen running on live prices with a simulated wallet stored in your browser. It applies the contract's rules, so you can see how plans and follows behave before real money is involved.",
+    a: "Every workspace screen running on live prices with a simulated wallet stored in your browser. It adds rules real orders do not have (drawdown guard, target pause, practice staking) so you can see how plans and follows behave before real money is involved.",
   },
 ];

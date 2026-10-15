@@ -5,7 +5,7 @@ import { pageMeta } from "@/lib/seo";
 export const metadata = pageMeta({
   path: "/contact",
   title: `Contact | ${BRAND.name}`,
-  description: `How to reach the ${BRAND.name} team, report a problem with the workspace or the contracts, and spot impersonators.`,
+  description: `How to reach the ${BRAND.name} team, report a problem with the workspace, and spot impersonators.`,
 });
 
 export default function ContactPage() {
@@ -16,8 +16,8 @@ export default function ContactPage() {
         only.
       </p>
       <h2>Reporting a problem</h2>
-      <p>Describe what you did, what you expected and what happened. A transaction hash from the explorer helps more than a screenshot.</p>
-      <h2>Security issues in the contracts</h2>
+      <p>Describe what you did, what you expected and what happened. A transaction signature from the explorer helps more than a screenshot.</p>
+      <h2>Security issues</h2>
       <p>Please report privately by direct message on X first and give us time to respond before publishing details.</p>
       <h2>We will never</h2>
       <ul>

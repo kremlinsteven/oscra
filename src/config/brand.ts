@@ -1,7 +1,7 @@
 // Single place to change project identity. Everything on the site reads from here.
-// To publish the real contract address, replace the value of CA below. The
-// navbar copy pill, the footer, the token page and every explorer link derive
-// from it. Anything that is not a 0x + 40 hex address is treated as "not launched yet".
+// To publish the real token address, replace the value of CA below with the $OSCRA mint (base58, from pump.fun).
+// The navbar copy pill, the footer, the token page, poll weights and every explorer link derive from it.
+// Anything that is not a Solana base58 address is treated as "not launched yet".
 
 const CA = "0xxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 
@@ -12,7 +12,8 @@ const CA = "0xxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
  */
 export const DOMAIN_LIVE = false;
 
-export const isAddress = (v: string): v is `0x${string}` => /^0x[0-9a-fA-F]{40}$/.test(v);
+/** Solana address (base58, 32 to 44 characters). The "0xxxx" placeholder fails this on purpose. */
+export const isAddress = (v: string) => /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(v);
 
 const NAME = "OSCRA";
 const SLUG = "oscra";
@@ -31,8 +32,8 @@ export const BRAND = {
   slogan: "Automate With Control. Trade With Confidence.",
   tagline: "Oscra: Non-custodial trading automation. AI review. Visible controls. Your assets stay yours.",
   category: "non-custodial trading workspace",
-  chainName: "Robinhood Chain",
-  description: `${NAME} is a non-custodial trading workspace on Robinhood Chain: recurring buys and copied trades run from your own wallet under limits you write, with a rule-based review before you commit.`,
+  chainName: "Solana",
+  description: `${NAME} is a non-custodial trading workspace on Solana: recurring buys and copied trades run from your own wallet under limits you write, with a rule-based review before you commit.`,
   x: `https://x.com/${X_HANDLE}`,
   xHandle: `@${X_HANDLE}`,
   // Public source repository. Empty until the owner publishes it; the site hides every GitHub link meanwhile.
@@ -43,29 +44,25 @@ export const BRAND = {
 /** True once BRAND.github points at an actual repository, not the bare host. */
 export const hasGithub = /^https:\/\/github\.com\/[^/]+/.test(BRAND.github);
 
-// Public endpoints are the default. An operator can point the site at a
-// private RPC with ROBINHOOD_RPC_URL (server) / NEXT_PUBLIC_ROBINHOOD_RPC_URL
-// (browser). Both are optional.
-const PUBLIC_RPC = "https://rpc.mainnet.chain.robinhood.com";
+// Public endpoints are the default. An operator can point the site at a private RPC with SOLANA_RPC_URL (server) /
+// NEXT_PUBLIC_SOLANA_RPC_URL (browser). Both are optional.
+const PUBLIC_RPC = "https://api.mainnet-beta.solana.com";
 
 export const CHAIN = {
-  id: 4663,
-  hex: "0x1237",
-  name: "Robinhood Chain",
-  nativeSymbol: "ETH",
-  decimals: 18,
+  name: "Solana",
+  cluster: "mainnet-beta",
+  nativeSymbol: "SOL",
+  decimals: 9,
   publicRpc: PUBLIC_RPC,
-  rpc: process.env.NEXT_PUBLIC_ROBINHOOD_RPC_URL || PUBLIC_RPC,
-  /** Second public endpoint, used for reads only when the first one fails. */
-  fallbackRpc: "https://robinhood-rpc.publicnode.com",
-  /** Third read endpoint for server code (some networks intercept the official host). */
-  spareRpc: "https://robinhood.drpc.org",
-  explorer: "https://robinhoodchain.blockscout.com",
+  rpc: process.env.NEXT_PUBLIC_SOLANA_RPC_URL || PUBLIC_RPC,
+  /** Second public endpoint for server reads when the first one fails. */
+  fallbackRpc: "https://solana-rpc.publicnode.com",
+  explorer: "https://solscan.io",
 } as const;
 
 /** RPC for server code: the private endpoint when set, else the public one. */
 export function serverRpc() {
-  return process.env.ROBINHOOD_RPC_URL || process.env.NEXT_PUBLIC_ROBINHOOD_RPC_URL || PUBLIC_RPC;
+  return process.env.SOLANA_RPC_URL || process.env.NEXT_PUBLIC_SOLANA_RPC_URL || PUBLIC_RPC;
 }
 
 export const TOKEN = {
@@ -78,31 +75,35 @@ export const TOKEN = {
 };
 
 export function explorerAddress(address: string) {
-  return `${CHAIN.explorer}/address/${address}`;
+  return `${CHAIN.explorer}/account/${address}`;
 }
 export function explorerToken(address: string) {
   return `${CHAIN.explorer}/token/${address}`;
 }
-export function explorerTx(hash: string) {
-  return `${CHAIN.explorer}/tx/${hash}`;
+export function explorerTx(signature: string) {
+  return `${CHAIN.explorer}/tx/${signature}`;
 }
-export function shortAddress(address: string, head = 6, tail = 4) {
+export function shortAddress(address: string, head = 4, tail = 4) {
   if (address.length <= head + tail + 2) return address;
   return `${address.slice(0, head)}…${address.slice(-tail)}`;
 }
 
-/** USDG ("Global Dollar") on Robinhood Chain. Read on-chain: symbol USDG, 6 decimals. */
-export const USDG = {
-  address: "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
-  symbol: "USDG",
-  name: "Global Dollar",
+/** USDC on Solana (classic SPL Token, 6 decimals). Every plan and copied trade is priced in it. */
+export const USDC = {
+  mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  symbol: "USDC",
+  name: "USD Coin",
   decimals: 6,
 } as const;
 
-export const WETH = "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73";
+export const WSOL_MINT = "So11111111111111111111111111111111111111112";
+export const TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+export const TOKEN_2022_PROGRAM = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
+export const MEMO_PROGRAM = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
 
-/** Uniswap v3 SwapRouter02 on Robinhood Chain (exactInputSingle without a deadline field). */
-export const SWAP_ROUTER = "0xCaf681a66D020601342297493863E78C959E5cb2";
+/** pump.fun page and chart of the token once it exists. */
+export const PUMP_TOKEN_URL = (mint: string) => `https://pump.fun/coin/${mint}`;
+export const DEXSCREENER_TOKEN_URL = (mint: string) => `https://dexscreener.com/solana/${mint}`;
 
-/** Pons launch page for the token once it exists. */
-export const PONS_TOKEN_URL = (ca: string) => `https://www.ponsfamily.com/launchpad/${ca}`;
+/** pump.fun tokens: 1,000,000,000 supply, 6 decimals. */
+export const TOKEN_DECIMALS = 6;

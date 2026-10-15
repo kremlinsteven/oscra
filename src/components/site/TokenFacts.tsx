@@ -3,7 +3,7 @@
 import { useChain } from "@/components/providers/ChainProvider";
 import { BRAND, TOKEN } from "@/config/brand";
 
-/** Name, symbol and supply read from the token contract once the address is published. */
+/** Name, symbol and supply read from the token mint once its address is published. */
 export function TokenFacts() {
   const { facts } = useChain();
   const t = facts?.token;

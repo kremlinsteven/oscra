@@ -1,5 +1,5 @@
 import { BRAND } from "@/config/brand";
-import { RUNBOOK_TERMS } from "@/config/lanes";
+import { PRACTICE_TERMS, RECURRING } from "@/config/lanes";
 import { Cta, Headline, PageHead } from "@/components/site/Blocks";
 import { pageMeta } from "@/lib/seo";
 
@@ -9,24 +9,24 @@ export const metadata = pageMeta({
   description: `${BRAND.name} has no subscription: a fixed fee per order once ${BRAND.symbol} launches, a lower rate for holders and stakers, and every fee shared with stakers.`,
 });
 
-const fee = RUNBOOK_TERMS.feeBps / 100;
-const holder = RUNBOOK_TERMS.holderFeeBps / 100;
-const min = Number(RUNBOOK_TERMS.holderMin / 10n ** 18n).toLocaleString("en-US");
+const fee = PRACTICE_TERMS.feeBps / 100;
+const holder = PRACTICE_TERMS.holderFeeBps / 100;
+const min = PRACTICE_TERMS.holderMin.toLocaleString("en-US");
 
 export default function PricingPage() {
   return (
     <main>
       <PageHead
         tag="Pricing"
-        fade="Pay per order,"
-        ink="not per month."
-        lead={`There are no plans to pick and no trial to expire. The workspace is free to use. The Runbook contract takes a fixed share of each order it fills, and that rate is written into the contract at deployment, so nobody can raise it later.`}
+        fade="No OSCRA fee"
+        ink="on real orders."
+        lead={`There are no plans to pick and no trial to expire. The workspace is free to use, and real orders pay only Jupiter and the Solana network. The ${BRAND.symbol} fee model is something you can try in practice.`}
       />
       <section className="shell grid grid-cols-1 gap-4 py-8 md:grid-cols-3">
         {[
-          ["Before launch", "0%", `Until ${BRAND.symbol} exists and the staking contract is linked, the Runbook charges nothing.`, "Every plan and copy, from the first deployment"],
-          ["Standard", `${fee}%`, "Of each order's size, taken in USDG when the order fills.", "After the one-time link to the staking contract"],
-          ["Holders and stakers", `${holder}%`, `For wallets that hold or stake at least ${min} ${BRAND.symbol} at the moment of the order.`, "Checked on-chain per order"],
+          ["Real orders", "0%", `${BRAND.name} adds nothing to Jupiter Recurring orders or copied swaps. Jupiter keeps ${RECURRING.jupiterFeeBps / 100}% of each filled recurring order.`, "Every real plan and copy"],
+          ["Practice standard", `${fee}%`, "Of each practice order, paid in practice USDC into the practice stake pool.", "Practice book only: no funds move"],
+          ["Practice holders", `${holder}%`, `For practice books that hold or stake at least ${min} practice ${BRAND.symbol}.`, "Practice book only: no funds move"],
         ].map(([k, v, b, s], i) => (
           <div key={k} className={`flex flex-col rounded-[24px] p-6 ${i === 1 ? "bg-night text-night-ink" : "card"}`}>
             <p className={`label ${i === 1 ? "text-night-mute" : ""}`}>{k}</p>
@@ -38,11 +38,11 @@ export default function PricingPage() {
         ))}
       </section>
       <section className="shell grid grid-cols-1 gap-10 py-16 lg:grid-cols-2">
-        <Headline fade="Where the fee goes," ink="to the last cent." />
+        <Headline fade="What you actually pay," ink="to the last cent." />
         <div className="space-y-4 text-[15px] text-ink-2">
-          <p>Each fee is sent to OscraKeel, the staking contract, in the same transaction as the order. It is split across everyone staking {BRAND.symbol} at that moment, in proportion to their stake, and they claim it in USDG whenever they like.</p>
-          <p>There is no treasury wallet and no team cut inside the contracts. If nobody is staking when a fee arrives, it waits for the first staker.</p>
-          <p>Other costs are outside {BRAND.name}: Robinhood Chain gas for each transaction, the Uniswap pool fee of the market (0.01% to 0.3%), and price impact on larger orders. A keeper tip applies only if you set one and someone else runs your buy.</p>
+          <p>Recurring buys: Jupiter keeps {RECURRING.jupiterFeeBps / 100}% of each filled order. Copied trades: the Jupiter route you see in your wallet, plus price impact on larger orders. Every transaction pays a small Solana network fee and an optional priority fee.</p>
+          <p>{BRAND.name} has no program, no treasury cut and no server wallet, so there is nowhere for a fee to go. Signing a follow, an idea or a vote is free.</p>
+          <p>The practice fee share shows how a {BRAND.symbol} fee model would behave: practice fees fill a pool that practice stakers claim. It is labelled practice everywhere and never asks for funds.</p>
         </div>
       </section>
       <section className="shell py-12">

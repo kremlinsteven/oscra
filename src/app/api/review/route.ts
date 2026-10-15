@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { LANES } from "@/config/lanes";
 import { buildReview, type Review } from "@/lib/review";
+import { budget } from "@/lib/guard";
 import { readSeries } from "@/lib/server/series";
+import { getStore } from "@/lib/server/store";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +22,7 @@ export async function GET(request: Request) {
   const raw = new URL(request.url).searchParams.get("lane") ?? "0";
   const lane = /^\d{1,2}$/.test(raw) ? Number(raw) : -1;
   if (!LANES.some((l) => l.id === lane)) return NextResponse.json({ error: "Unknown lane." }, { status: 400 });
+  if (!(await budget(getStore(), request, "review", 1, 120, 6_000, 600))) return NextResponse.json({ error: "Too many requests. Slow down a little." }, { status: 429 });
   const hit = cache.get(lane);
   if ((!hit || Date.now() - hit.at > TTL) && Date.now() - (lastTry.get(lane) ?? 0) > RETRY && !inflight.has(lane)) {
     lastTry.set(lane, Date.now());

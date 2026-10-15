@@ -1,7 +1,7 @@
 /*
  * The OSCRA trade review: fixed rules over a price series, no model. Every line of the read traces back to a
  * number that is shown next to it, so a reader can check it. Pure functions; the data comes from
- * src/lib/server/series.ts (OKX candles for ETH, Chainlink rounds for stock tokens).
+ * src/lib/server/series.ts (OKX candles for SOL, Solana pool candles for xStocks).
  */
 
 export type Point = { t: number; close: number; high?: number; low?: number };

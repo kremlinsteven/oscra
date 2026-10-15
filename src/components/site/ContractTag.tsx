@@ -6,7 +6,7 @@ import { BRAND, TOKEN, explorerToken, isAddress, shortAddress } from "@/config/b
 
 /*
  * The token address, from BRAND.ca only. Three shapes of one component:
- *   bar    navbar pill on the dark header ("$OSCRA 0x12…abcd" + copy; on phones a short "CA" chip)
+ *   bar    navbar pill on the dark header ("$OSCRA AbCd…pump" + copy; on phones a short "CA" chip)
  *   slab   full address block (footer, token page)
  * Before launch it reads "At launch" and the copy control is disabled.
  */
@@ -51,7 +51,7 @@ export function ContractTag({ shape }: { shape: "bar" | "slab" }) {
   return (
     <div className="rounded-[16px] border border-line bg-card p-4" data-testid="ca-slab">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="label">{BRAND.symbol} contract · {BRAND.chainName}</span>
+        <span className="label">{BRAND.symbol} mint · {BRAND.chainName}</span>
         {live ? (
           <a href={explorerToken(BRAND.ca)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] font-semibold text-olive">
             Explorer <ExternalLink size={12} />

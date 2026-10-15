@@ -5,7 +5,7 @@ import type { ChainSnapshot } from "@/lib/server/snapshot";
 
 const Ctx = createContext<{ facts: ChainSnapshot | null; failed: boolean }>({ facts: null, failed: false });
 
-/** Polls the server's live chain snapshot (block, gas, lane prices, contract totals) for the whole site. */
+/** Polls the server's live Solana snapshot (slot, priority fee, lane prices, token facts) for the whole site. */
 export function ChainProvider({ children }: { children: React.ReactNode }) {
   const [facts, setFacts] = useState<ChainSnapshot | null>(null);
   const [failed, setFailed] = useState(false);
@@ -17,7 +17,7 @@ export function ChainProvider({ children }: { children: React.ReactNode }) {
         .then((v: ChainSnapshot) => {
           if (cancelled) return;
           setFacts(v);
-          setFailed(v.block === null);
+          setFailed(v.slot === null);
         })
         .catch(() => !cancelled && setFailed(true));
     load();

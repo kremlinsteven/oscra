@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, Check, Minus, X } from "lucide-react";
 import { BRAND } from "@/config/brand";
-import { LANES, RUNBOOK_TERMS } from "@/config/lanes";
+import { LANES, PRACTICE_TERMS, RECURRING } from "@/config/lanes";
 import { Cta, Headline, Note } from "@/components/site/Blocks";
 import { LivePanel } from "@/components/home/LivePanel";
 import { ReviewPanel } from "@/components/home/ReviewPanel";
@@ -23,7 +23,7 @@ const PILLARS = [
   {
     n: "02",
     title: "Recurring buys on your terms",
-    body: "Set an order size, a pace and a budget once. Add a price ceiling, a drawdown pause and a target pause. The contract checks all of it before each buy and stops when a rule says stop.",
+    body: "Set an order size, a pace and a number of orders once, with an optional price range. Your wallet signs one Jupiter Recurring order; it fills on schedule and you can cancel it whenever you like.",
     href: "/dca-bots",
   },
   {
@@ -37,9 +37,9 @@ const PILLARS = [
 const COMPARE: [string, string, string, string][] = [
   ["Who holds the money", "You", "The platform", "You: your wallet, the whole time"],
   ["Automation", "None", "Yes, out of sight", "Yes, every rule on screen"],
-  ["Risk rules", "In your head", "Unknown to you", "Written down and enforced on-chain"],
+  ["Risk rules", "In your head", "Unknown to you", "Written down and checked before each order"],
   ["What you watch", "Charts all day", "Nothing, until it goes wrong", "A status line per plan and per follow"],
-  ["How to stop it", "Close the tab", "Ask support", "Pause the plan, or revoke one allowance"],
+  ["How to stop it", "Close the tab", "Ask support", "Cancel the order: the rest comes back to you"],
 ];
 
 export default function HomePage() {
@@ -54,8 +54,8 @@ export default function HomePage() {
             <span className="fade">Automate with control.</span> Trade with confidence.
           </h1>
           <p className="mt-6 max-w-[58ch] text-[18px] leading-relaxed text-ink-2">
-            <strong className="font-semibold text-ink">{BRAND.name}</strong> runs recurring buys and copied trades straight from your own wallet on {BRAND.chainName}, checks every order
-            against a live price feed, and shows you the read and the limits before anything moves. Your assets never leave your wallet to sit with us.
+            <strong className="font-semibold text-ink">{BRAND.name}</strong> runs recurring buys and copied trades straight from your own wallet on {BRAND.chainName}, checks every copy
+            against your written limits and a live price, and shows you the read before anything moves. Your assets never leave your wallet to sit with us.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Cta href="/app">Open the workspace</Cta>
@@ -135,7 +135,7 @@ export default function HomePage() {
           </div>
           <div className="min-w-0">
             <ReviewPanel lane={0} />
-            <Note>The panel above is live: ETH from OKX four-hour candles, refreshed every five minutes.</Note>
+            <Note>The panel above is live: SOL from OKX four-hour candles, refreshed every five minutes.</Note>
           </div>
         </div>
       </section>
@@ -149,14 +149,14 @@ export default function HomePage() {
           <span className="tag">Recurring buys</span>
           <Headline fade="Build a position" ink="on a schedule you wrote." className="mt-6" />
           <p className="lead mt-6">
-            A plan buys a fixed dollar amount of one market at a fixed pace until its budget is spent. Before each buy the contract reads Chainlink, refuses a price above your ceiling, and pauses the
-            plan when the price falls too far under your average or rises past your target. You see why it paused and decide whether to resume.
+            A plan buys a fixed USDC amount of one market at a fixed pace until its orders are used. It runs as a Jupiter Recurring order your wallet signs: buys wait while the price is outside your range,
+            and cancelling returns the unspent USDC and everything bought. Want a drawdown pause or a target pause too? Try them in practice first.
           </p>
           <dl className="mt-8 grid grid-cols-3 gap-px overflow-hidden rounded-[16px] border border-line bg-line">
             {[
-              ["Order", "from 1 USDG"],
+              ["Order", `from ${RECURRING.minPerOrder} USDC`],
               ["Pace", "1 h to 90 d"],
-              ["Slippage", "0.5% to 5%"],
+              ["Orders", `${RECURRING.minOrders} or more`],
             ].map(([k, v]) => (
               <div key={k} className="bg-card px-4 py-3">
                 <dt className="label">{k}</dt>
@@ -176,10 +176,10 @@ export default function HomePage() {
       {/* The core. */}
       <section className="py-20">
         <div className="shell">
-          <Headline fade="One rulebook between your wallet" ink="and every order it sends." />
+          <Headline fade="One rulebook between your wallet" ink="and every order it signs." />
           <p className="lead mt-6 max-w-[64ch]">
-            Reviews, plans and follows all end at the same contract, the OscraRunbook. It holds no balance, has no owner and cannot be upgraded. Anyone may trigger a due buy, but only your rules
-            decide whether it happens and how much it spends.
+            Reviews, plans and follows all end at your wallet. {BRAND.name} has no contract of its own and holds no balance: recurring buys are Jupiter orders, copies are Jupiter swaps, and your limits
+            decide whether a copy is offered and how much it spends.
           </p>
         </div>
         <div className="shell mt-12">
@@ -192,9 +192,9 @@ export default function HomePage() {
         <Headline fade="Connect the data, the rules" ink="and the trades you take." />
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
           {[
-            ["Live market data", "Prices come from Chainlink feeds on Robinhood Chain, the same numbers the contract checks. The review adds OKX candles for ETH."],
-            ["Rules that run on-chain", "Ceilings, pauses, caps and review delays are stored in the contract with your plan or follow, not in a server that could change them."],
-            ["One status per position", "Each plan and each follow carries a single state: active, held by you, paused by a guard, at target, spent or closed."],
+            ["Live market data", "Prices come from Pyth on Solana when the feed is fresh, else from Jupiter, matched by mint. The review adds OKX candles for SOL and pool candles for xStocks."],
+            ["Rules you sign", "Follows and their caps, delays and stops are records your wallet signs; the price range of a recurring buy is part of the Jupiter order itself."],
+            ["One status per position", "Each order and each follow carries a single state: active, finished, cancelled, or waiting in its review window."],
           ].map(([t, b]) => (
             <div key={t} className="border-t border-line-2 pt-5">
               <h3 className="subhead">{t}</h3>
@@ -210,11 +210,11 @@ export default function HomePage() {
           <div>
             <span className="tag border-white/15 bg-white/5 text-night-mute">Custody</span>
             <h2 className="mt-6 text-[clamp(30px,4vw,50px)] leading-[1.05] font-medium tracking-[-0.034em] text-night-ink">
-              <span className="text-night-mute">Grant an allowance.</span> Never hand over the funds.
+              <span className="text-night-mute">Sign each order.</span> Never hand over the funds.
             </h2>
             <p className="mt-6 text-[16px] leading-relaxed text-night-mute">
-              You approve the Runbook to spend USDG from your wallet. Each buy pulls exactly one order, swaps it on a fixed Uniswap pool and sends the asset straight back to your address in the same
-              transaction. Lower the allowance to zero and every plan and follow stops at once. Exchange account connections are not part of this release.
+              A recurring buy moves your USDC into a Jupiter order account that only your wallet can cancel. A copied trade is one Jupiter swap that lands in your own wallet. {BRAND.name} never holds a key,
+              a balance or a standing approval. Exchange account connections are not part of this release.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/connect-guide" className="btn btn-lime">
@@ -224,10 +224,10 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {[
-              ["0", "USDG the Runbook keeps between buys", "Checked by the invariant tests after every random sequence of plans, buys, follows and copies."],
-              ["None", "Owner or admin key", "No pause switch, no fee setter, no upgrade path. Settings are fixed at deployment."],
-              [`${LANES.length}`, "Markets, fixed for good", "ETH and nine official stock tokens, each matched to its Chainlink feed and deepest USDG pool."],
-              ["Every order", "Checked against the feed", "The swap must return at least the feed price minus your slippage limit, or it reverts."],
+              ["0", `Funds ${BRAND.name} holds`, "No program, no vault, no server wallet. Real orders live in Jupiter accounts tied to your wallet."],
+              ["None", "Standing approvals", "Every real action is a transaction you sign at that moment. Follows and votes are free signatures."],
+              [`${LANES.length}`, "Markets, matched by mint", "SOL and nine xStocks tokenized shares, each matched to its Pyth feed and priced in USDC."],
+              ["Every copy", "Checked before it is built", "Review delay, copy window, chase limit, daily cap, position cap and stop, then Jupiter slippage on the swap."],
             ].map(([n, k, b]) => (
               <div key={k} className="rounded-[18px] border border-night-line bg-night-2 p-5">
                 <p className="text-[34px] leading-none font-medium tracking-[-0.03em] text-lime">{n}</p>
@@ -292,14 +292,14 @@ export default function HomePage() {
       <section className="shell grid grid-cols-1 gap-10 py-16 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
         <div>
           <span className="tag">Inside one order</span>
-          <Headline fade="What happens" ink="when a buy comes due." className="mt-6" />
+          <Headline fade="What happens" ink="when a copy comes due." className="mt-6" />
         </div>
         <ol className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {[
-            ["The call", "Someone calls the Runbook for your plan: you from the workspace, or a keeper that collects the small tip you allowed. Calling early does nothing but fail; the contract compares the clock with your next buy time."],
-            ["The checks", "The contract reads the Chainlink price for the market and refuses a stale one. It compares the price with your ceiling, your average entry, your drawdown guard and your target, and pauses the plan instead of buying when one of them says so."],
-            ["The swap", "Exactly one order of USDG moves from your wallet to the Uniswap pool for that market. The minimum it must receive is set from the feed price minus your slippage limit, so a poor pool price makes the whole transaction revert."],
-            ["The result", "The asset arrives at your own address, the plan records what it spent and what it bought, and your average entry updates. The contract finishes holding nothing, and the next buy opens one interval later."],
+            ["The idea", "A desk you follow posts an idea. The server stores the live price with it, and your review delay starts: skip it in that time and it never runs."],
+            ["The checks", "When the window opens, the workspace compares the live price with the desk price (your chase limit), adds up today's copies (your daily cap) and this desk's position (your cap and your stop)."],
+            ["The swap", "Only then is a Jupiter swap built for per-idea × weight USDC, with your slippage limit as its minimum. Your wallet shows it; nothing moves unless you sign."],
+            ["The result", "The asset arrives at your own address. The workspace records the fill after the server reads your transaction on-chain, so caps and holdings stay honest."],
           ].map(([t, b], i) => (
             <li key={t} className="border-t border-line-2 pt-5">
               <span className="num text-[12px] text-mute">0{i + 1}</span>
@@ -316,7 +316,7 @@ export default function HomePage() {
           ["Active traders", "Keep a review step and a schedule without giving up custody."],
           ["Followers", "Learn from a desk while your own caps decide how much each idea may spend."],
           ["Busy people", "Write the plan once; check one status line instead of a chart."],
-          ["Careful savers", "Every limit is visible, and one allowance switch stops everything."],
+          ["Careful savers", "Every limit is visible, and one cancel returns what a plan has not spent."],
         ].map(([t, b]) => (
           <div key={t} className="card-soft p-5">
             <h3 className="text-[15px] font-semibold">{t}</h3>
@@ -331,11 +331,11 @@ export default function HomePage() {
           <div>
             <span className="tag">Pricing</span>
             <h2 className="headline mt-6">
-              <span className="fade">No subscription.</span> A fee per order, shared with stakers.
+              <span className="fade">No subscription.</span> No OSCRA fee on real orders.
             </h2>
             <p className="lead mt-6">
-              Until {BRAND.symbol} launches, orders run with no protocol fee at all. Afterwards each order pays {RUNBOOK_TERMS.feeBps / 100}% of its size, wallets that hold or stake enough{" "}
-              {BRAND.symbol} pay {RUNBOOK_TERMS.holderFeeBps / 100}%, and every fee goes to the staking contract for {BRAND.symbol} stakers.
+              Real orders pay only what Jupiter and the network charge: {RECURRING.jupiterFeeBps / 100}% per filled recurring order and normal swap routing. The {BRAND.symbol} fee share
+              ({PRACTICE_TERMS.feeBps / 100}%, or {PRACTICE_TERMS.holderFeeBps / 100}% for holders) runs as practice until it can run without custody.
             </p>
             <div className="mt-8">
               <Cta href="/pricing" kind="ghost">
@@ -345,9 +345,9 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-3 gap-3">
             {[
-              ["Before launch", "0%"],
-              ["Standard", `${RUNBOOK_TERMS.feeBps / 100}%`],
-              ["Holders", `${RUNBOOK_TERMS.holderFeeBps / 100}%`],
+              ["OSCRA fee", "0%"],
+              ["Jupiter recurring", `${RECURRING.jupiterFeeBps / 100}%`],
+              ["Practice holders", `${PRACTICE_TERMS.holderFeeBps / 100}%`],
             ].map(([k, v], i) => (
               <div key={k} className={`rounded-[18px] p-4 ${i === 2 ? "bg-lime" : "bg-card-2"}`}>
                 <p className="label text-ink-2">{k}</p>
@@ -366,7 +366,7 @@ export default function HomePage() {
           <span className="fade">Set the limits first.</span> Review every move.
         </h2>
         <p className="lead mx-auto mt-6 max-w-[52ch]">
-          Practice mode runs every screen on live prices without sending a transaction, so you can see how a plan or a follow behaves before any money is involved.
+          Practice mode runs every screen on live prices without sending a transaction, so you can see how a plan or a follow behaves before any money is involved. Real mode is one tab away.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Cta href="/app">Open the workspace</Cta>
@@ -376,8 +376,8 @@ export default function HomePage() {
         </div>
         <div className="mx-auto mt-14 grid max-w-[1000px] grid-cols-1 gap-3 text-left sm:grid-cols-2 lg:grid-cols-4">
           {[
-            ["Price read", "Feed checked before the order"],
-            ["Ceiling held", "A buy above your cap waits"],
+            ["Price read", "Live price checked before the copy"],
+            ["Range held", "A buy above your ceiling waits"],
             ["Guard paused a plan", "Price fell past your limit"],
             ["Idea skipped", "You vetoed it in the review window"],
           ].map(([t, b]) => (

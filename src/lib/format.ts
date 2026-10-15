@@ -1,5 +1,5 @@
 /** Micro-units (6 decimals) as a grouped decimal string: 12_500_000n -> "12.50". */
-export function formatUsdg(micro: bigint, digits = 2) {
+export function formatUsdc(micro: bigint, digits = 2) {
   const neg = micro < 0n;
   const abs = neg ? -micro : micro;
   const whole = abs / 1_000_000n;
@@ -29,11 +29,11 @@ export function ago(unixSeconds: number, now = Date.now() / 1000) {
   return `${Math.floor(d / 86400)}d ago`;
 }
 
-/** "12.50 USDG", or a dash while unknown. */
-export const usdg = (v: bigint | null | undefined, digits = 2) => (v == null ? "–" : `${formatUsdg(v, digits)} USDG`);
+/** "12.50 USDC", or a dash while unknown. */
+export const usdc = (v: bigint | null | undefined, digits = 2) => (v == null ? "–" : `${formatUsdc(v, digits)} USDC`);
 
-/** A decimal USDG string typed by a person -> micro-units, or null when it is not a clean amount. */
-export function parseUsdg(text: string): bigint | null {
+/** A decimal USDC string typed by a person -> micro-units, or null when it is not a clean amount. */
+export function parseUsdc(text: string): bigint | null {
   const t = text.trim().replace(/,/g, "");
   if (!/^\d+(\.\d{0,6})?$/.test(t)) return null;
   const [w, f = ""] = t.split(".");
@@ -59,4 +59,4 @@ export function span(seconds: number) {
   return `${m} m ${String(s % 60).padStart(2, "0")} s`;
 }
 
-export const short = (a: string | null | undefined) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "–");
+export const short = (a: string | null | undefined) => (a ? `${a.slice(0, 4)}…${a.slice(-4)}` : "–");

@@ -1,11 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { PRACTICE_DESK, RuleError, follow, freshBook, mirror, openPlan, post, runPlan, setPlanState, skip, type FollowTerms, type PlanTerms } from "./practice";
+import { PRACTICE_DESK, RuleError, claim, feeRate, stake, follow, freshBook, mirror, openPlan, post, runPlan, setPlanState, skip, type FollowTerms, type PlanTerms } from "./practice";
 import { buildReview, rsi, sizeFromStop } from "./review";
 
 const T0 = 1_800_000_000;
-const plan = (o: Partial<PlanTerms> = {}): PlanTerms => ({ lane: 0, perBuy: 100, interval: 86_400, budget: 300, ceiling: 0, slipBps: 100, guardBps: 0, targetBps: 0, tip: 0, ...o });
-const terms = (o: Partial<FollowTerms> = {}): FollowTerms => ({ perSignal: 100, dayCap: 300, maxCost: 0, laneMask: 3, reviewDelay: 3600, slipBps: 100, chaseBps: 200, stopBps: 0, tip: 0, ...o });
+const plan = (o: Partial<PlanTerms> = {}): PlanTerms => ({ lane: 0, perBuy: 100, interval: 86_400, budget: 300, ceiling: 0, slipBps: 100, guardBps: 0, targetBps: 0, ...o });
+const terms = (o: Partial<FollowTerms> = {}): FollowTerms => ({ perSignal: 100, dayCap: 300, maxCost: 0, laneMask: 3, reviewDelay: 3600, slipBps: 100, chaseBps: 200, stopBps: 0, ...o });
 const rule = (fn: () => unknown, name: string) => assert.throws(fn, (e) => e instanceof RuleError && e.rule === name);
 
 test("a plan buys on schedule and stops at its budget", () => {
@@ -20,7 +20,7 @@ test("a plan buys on schedule and stops at its budget", () => {
   assert.equal(b.dollars, 10_000 - 250);
 });
 
-test("ceiling, guard and target behave like the contract", () => {
+test("ceiling, guard and target pause the plan", () => {
   const b = freshBook();
   openPlan(b, plan({ ceiling: 1900, guardBps: 1500, targetBps: 2500, budget: 1000 }), T0);
   rule(() => runPlan(b, 0, 2000, T0), "AboveCeiling");
@@ -31,11 +31,11 @@ test("ceiling, guard and target behave like the contract", () => {
   assert.equal(runPlan(b, 0, 2400, T0 + 2 * 86_400), "targeted");
 });
 
-test("terms outside the contract's limits are refused", () => {
+test("terms outside the limits are refused", () => {
   const b = freshBook();
   rule(() => openPlan(b, plan({ interval: 600 }), T0), "BadTerms");
   rule(() => openPlan(b, plan({ slipBps: 10 }), T0), "BadTerms");
-  rule(() => openPlan(b, plan({ tip: 50 }), T0), "BadTerms");
+  rule(() => openPlan(b, plan({ budget: 50 }), T0), "BadTerms");
   rule(() => openPlan(b, plan({ lane: 42 }), T0), "BadLane");
 });
 
@@ -79,4 +79,18 @@ test("review rules and sizing", () => {
   const s = sizeFromStop(10_000, 1, 0.025);
   assert.ok(s && Math.abs(s.size - 4000) < 1e-9 && s.risk === 100);
   assert.equal(sizeFromStop(10_000, 1, 0), null);
+});
+
+test("practice fees fill the stake pool; holding the minimum lowers the rate; a staker claims", () => {
+  const b = freshBook();
+  assert.equal(feeRate(b), 20);
+  openPlan(b, plan(), T0);
+  runPlan(b, 0, 100, T0);
+  assert.equal(b.stake.pool, 0.2);
+  rule(() => claim(b, T0), "NothingStaked");
+  stake(b, 50_000, T0);
+  claim(b, T0);
+  assert.equal(b.stake.pool, 0);
+  b.stake.wallet += 200_000;
+  assert.equal(feeRate(b), 10);
 });

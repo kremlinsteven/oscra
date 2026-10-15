@@ -1,33 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ReviewPanel, useReview } from "@/components/home/ReviewPanel";
 import { useWorkspace } from "@/components/app/Workspace";
 import { Field, LaneSelect, NumberInput, Section, fmt, n } from "@/components/app/bits";
 import { useWallet } from "@/components/wallet/WalletProvider";
 import { LANES } from "@/config/lanes";
-import { readWallet } from "@/lib/live";
 import { sizeFromStop } from "@/lib/review";
 
 export function ReviewDesk() {
   const [lane, setLane] = useState(0);
   const { data } = useReview(lane);
-  const { live, book } = useWorkspace();
+  const { book, wallet } = useWorkspace();
   const { address } = useWallet();
   const [typed, setAccount] = useState<string | null>(null);
-  const [walletUsdg, setWalletUsdg] = useState<string | null>(null);
+  const walletUsdc = address && wallet?.usdc != null ? String(Math.round(Number(wallet.usdc) / 1e6)) : null;
   const [risk, setRisk] = useState("1");
   const [orders, setOrders] = useState("10");
 
-  useEffect(() => {
-    if (!live || !address) return;
-    readWallet(address)
-      .then((w) => w.usdg !== null && setWalletUsdg(String(Math.round(Number(w.usdg) / 1e6))))
-      .catch(() => {});
-  }, [live, address]);
-  // What the person typed wins; otherwise the wallet (live) or the practice balance.
-  const account = typed ?? (live ? (walletUsdg ?? "1000") : String(Math.round(book.dollars)));
+  // What the person typed wins; otherwise the wallet's USDC, else the practice balance.
+  const account = typed ?? walletUsdc ?? String(Math.round(book.dollars));
 
   const sizing = data ? sizeFromStop(n(account), n(risk), data.stopDistance) : null;
   const per = sizing && n(orders) > 0 ? sizing.size / n(orders) : null;
@@ -43,7 +36,7 @@ export function ReviewDesk() {
       </div>
       <Section title="Size it from the stop">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Field label="Account (USDG)" hint={live ? "Read from your wallet; edit freely." : "Your practice balance; edit freely."}>
+          <Field label="Account (USDC)" hint={walletUsdc ? "Read from your wallet; edit freely." : "Your practice balance; edit freely."}>
             <NumberInput value={account} onChange={setAccount} />
           </Field>
           <Field label="Risk per idea (%)">
@@ -76,7 +69,7 @@ export function ReviewDesk() {
         </p>
         {per && per >= 1 ? (
           <Link href={`/app/dca?lane=${lane}&perBuy=${Math.floor(per)}`} className="btn btn-ink mt-5">
-            Turn into a plan: {Math.floor(per)} USDG of {LANES[lane].symbol} per order
+            Turn into a plan: {Math.floor(per)} USDC of {LANES[lane].symbol} per order
           </Link>
         ) : null}
       </Section>

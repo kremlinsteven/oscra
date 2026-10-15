@@ -1,157 +1,116 @@
-import { BRAND, USDG, isAddress } from "@/config/brand";
+import { BRAND, USDC, isAddress } from "@/config/brand";
 import { LANES } from "@/config/lanes";
-import { CONTRACTS } from "@/config/contracts";
 
 /*
- * Rules for the read-only JSON-RPC relay, kept apart from the route so they
- * can be tested. Every request is priced in units; each network has a budget.
+ * Rules for the read-only Solana JSON-RPC relay, kept apart from the route so they can be tested. Every request
+ * is priced in units; each network has a budget. Only read methods pass, with shape and size limits; a signed
+ * transaction is never forwarded (wallets send their own transactions straight to the RPC).
  */
 
 export const MAX_CALLS = 20;
-export const MAX_LOGS_PER_BATCH = 3;
-export const MAX_LOG_SPAN = 20_000;
-export const MAX_GAS = 5_000_000;
-
-const GAS_CAP_HEX = `0x${MAX_GAS.toString(16)}`;
-const CALL_KEYS = new Set(["from", "to", "gas", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "value", "data", "input", "nonce", "type", "chainId"]);
-const LOG_KEYS = new Set(["address", "fromBlock", "toBlock", "topics", "blockHash"]);
-const BLOCK_TAG = /^(latest|pending|safe|finalized|0x[0-9a-fA-F]{1,16})$/;
-
-/**
- * Normalises a call object before it is checked and forwarded. The node reads `input` as well as
- * `data`, so `input` is folded into `data` (refused when the two disagree) and every size check sees
- * the bytes that will run; a call without `gas` gets the relay cap instead of the node's much higher
- * default. Mutates `tx`; running it twice is harmless.
- */
-function shapeTx(tx: Record<string, unknown>): string | null {
-  // The node decodes field names case-insensitively ("TO" would override "to"), so only these exact names pass.
-  for (const k of Object.keys(tx)) if (!CALL_KEYS.has(k)) return `Unsupported call field: ${k.slice(0, 32)}`;
-  if (tx.input !== undefined) {
-    if (tx.data !== undefined && tx.data !== tx.input) return "data and input disagree.";
-    tx.data = tx.input;
-    delete tx.input;
-  }
-  if (tx.data !== undefined && (typeof tx.data !== "string" || !/^0x[0-9a-fA-F]*$/.test(tx.data))) return "Call data must be hex.";
-  if (tx.gas === undefined) tx.gas = GAS_CAP_HEX;
-  return null;
-}
+export const MAX_KEYS = 20;
+export const MAX_SIGNATURES = 50;
 export const MAX_BODY = 32_768;
-export const BUDGET = { units: 600, windowSec: 600, siteUnits: 20_000 };
+export const BUDGET = { units: 600, windowSec: 600, siteUnits: 30_000 };
 
 export const COST: Record<string, number> = {
-  eth_getLogs: 10,
-  eth_call: 2,
-  eth_getTransactionReceipt: 1,
-  eth_blockNumber: 1,
-  eth_getBalance: 1,
-  eth_chainId: 1,
-  eth_gasPrice: 1,
-  eth_getBlockByNumber: 1,
-  eth_getTransactionCount: 1,
-  eth_maxPriorityFeePerGas: 1,
-  eth_getCode: 1,
-  eth_estimateGas: 3,
+  getAccountInfo: 1,
+  getMultipleAccounts: 3,
+  getBalance: 1,
+  getTokenAccountsByOwner: 3,
+  getTokenAccountBalance: 1,
+  getSlot: 1,
+  getLatestBlockhash: 1,
+  getSignatureStatuses: 1,
+  getRecentPrioritizationFees: 2,
+  getTransaction: 3,
+  getSignaturesForAddress: 5,
+  getTokenSupply: 1,
 };
 
-/** Call data limit in hex characters (the largest site call, opening a poll with six choices, is far below this). */
-export const MAX_CALL_DATA = 20_000;
-const dataLimit = (to: unknown) => (typeof to === "string" ? MAX_CALL_DATA : 0);
+const BASE58 = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+const SIGNATURE = /^[1-9A-HJ-NP-Za-km-z]{64,88}$/;
+const ENCODINGS = new Set(["base64", "jsonParsed", "base58"]);
+const CONFIG_KEYS = new Set(["commitment", "encoding", "minContextSlot", "dataSlice", "maxSupportedTransactionVersion", "limit", "before", "until", "searchTransactionHistory"]);
 
-/**
- * Contracts the site itself reads: USDG, every lane asset and its Chainlink feed, the token once launched
- * and the OSCRA contracts once deployed. Nothing else is served.
- */
-export function readTargets(extra: string[] = []): Set<string> {
-  const list: string[] = [USDG.address, ...LANES.flatMap((l) => [l.asset, l.feed])];
+/** Mints the site reads: USDC, every lane asset and the token once launched. Token account queries must name one. */
+export function readMints(): Set<string> {
+  const list = [USDC.mint, ...LANES.map((l) => l.mint)];
   if (isAddress(BRAND.ca)) list.push(BRAND.ca);
-  for (const a of [CONTRACTS.runbook, CONTRACTS.keel]) if (isAddress(a)) list.push(a);
-  for (const a of extra) list.push(a);
-  return new Set(list.map((a) => a.toLowerCase()));
-}
-
-/** Addresses a batch reads (eth_call targets and log filter addresses), lowercased. */
-export function namedAddresses(body: Call | Call[]): string[] {
-  const calls = Array.isArray(body) ? body : [body];
-  const out = new Set<string>();
-  for (const c of calls) {
-    if (!c || !Array.isArray(c.params)) continue;
-    const first = c.params[0] as { to?: unknown; address?: unknown } | undefined;
-    if (!first || typeof first !== "object") continue;
-    if ((c.method === "eth_call" || c.method === "eth_estimateGas") && typeof first.to === "string") out.add(first.to.toLowerCase());
-    if (c.method === "eth_getLogs") {
-      const a = first.address;
-      for (const x of typeof a === "string" ? [a] : Array.isArray(a) ? a : []) if (typeof x === "string") out.add(x.toLowerCase());
-    }
-  }
-  return [...out].filter((a) => /^0x[0-9a-f]{40}$/.test(a));
+  return new Set(list);
 }
 
 export type Call = { jsonrpc?: string; id?: unknown; method: string; params?: unknown[] };
 
-const hexBlock = (v: unknown) => (typeof v === "string" && /^0x[0-9a-fA-F]{1,16}$/.test(v) ? Number(BigInt(v)) : null);
+function checkConfig(v: unknown): string | null {
+  if (v === undefined) return null;
+  if (!v || typeof v !== "object" || Array.isArray(v)) return "Config must be an object.";
+  for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+    if (!CONFIG_KEYS.has(k)) return `Unsupported config field: ${k.slice(0, 32)}`;
+    if (k === "encoding" && !ENCODINGS.has(String(x))) return "Unsupported encoding.";
+    if (k === "limit" && !(Number.isInteger(x) && (x as number) > 0 && (x as number) <= MAX_SIGNATURES)) return `limit must be 1 to ${MAX_SIGNATURES}.`;
+    if (k === "dataSlice" && (typeof x !== "object" || x === null)) return "Bad dataSlice.";
+  }
+  return null;
+}
 
 /** Checks a batch and returns its cost in units, or the reason it is refused. */
-export function checkBatch(calls: Call[], targets = readTargets()): { units: number } | { error: string } {
+export function checkBatch(calls: Call[], mints = readMints()): { units: number } | { error: string } {
   if (calls.length === 0 || calls.length > MAX_CALLS) return { error: `Between 1 and ${MAX_CALLS} calls per request.` };
   let units = 0;
-  let logs = 0;
-  let span = 0;
-  for (let i = 0; i < calls.length; i++) {
-    const c = calls[i];
+  for (const c of calls) {
     if (!c || typeof c.method !== "string" || !Object.hasOwn(COST, c.method)) return { error: `Method not allowed: ${String(c?.method)}` };
     if (c.params !== undefined && !Array.isArray(c.params)) return { error: "params must be an array." };
-    const params = c.params ?? [];
+    const p = c.params ?? [];
     units += COST[c.method];
-    if (c.method === "eth_getLogs") {
-      logs += 1;
-      if (logs > MAX_LOGS_PER_BATCH) return { error: `At most ${MAX_LOGS_PER_BATCH} log queries per request.` };
-      const filter = (params[0] ?? {}) as { address?: unknown; fromBlock?: unknown; toBlock?: unknown; blockHash?: unknown };
-      if (typeof filter !== "object" || filter === null || Array.isArray(filter)) return { error: "eth_getLogs needs a filter object." };
-      const oddKey = Object.keys(filter).find((k) => !LOG_KEYS.has(k));
-      if (oddKey) return { error: `Unsupported filter field: ${oddKey.slice(0, 32)}` };
-      if (filter.blockHash !== undefined) return { error: "blockHash filters are not relayed." };
-      // An address filter is required and every address must be one the site reads: a topic-only or
-      // address-less query would return every log on the chain in the range.
-      const addresses = typeof filter.address === "string" ? [filter.address] : Array.isArray(filter.address) ? filter.address : null;
-      if (!addresses || addresses.length === 0 || addresses.length > 3) return { error: "eth_getLogs needs an address filter (1 to 3 addresses)." };
-      if (!addresses.every((a) => typeof a === "string" && targets.has(a.toLowerCase()))) return { error: "eth_getLogs address not served by this relay." };
-      // Both ends must be hex numbers: "latest" or a missing bound would let one request scan the whole chain.
-      const from = hexBlock(filter.fromBlock);
-      const to = hexBlock(filter.toBlock);
-      if (from === null || to === null) return { error: "eth_getLogs needs numeric fromBlock and toBlock." };
-      if (to < from) return { error: "toBlock is before fromBlock." };
-      span += to - from + 1;
-      if (span > MAX_LOG_SPAN) return { error: "Log range too wide." };
-      // Priced by the blocks it covers: 1 extra unit per 1,000 blocks.
-      units += Math.ceil((to - from + 1) / 1_000);
-    }
-    if (c.method === "eth_call") {
-      if (params.length > 2) return { error: "State overrides are not relayed." };
-      const tx = params[0] as { to?: unknown; gas?: unknown; data?: unknown } | undefined;
-      if (!tx || typeof tx.to !== "string" || !targets.has(tx.to.toLowerCase())) return { error: "eth_call target not served by this relay." };
-      const shaped = shapeTx(tx as Record<string, unknown>);
-      if (shaped) return { error: shaped };
-      if (params[1] !== undefined && !(typeof params[1] === "string" && BLOCK_TAG.test(params[1]))) return { error: "Unsupported block tag." };
-      if (tx.gas !== undefined) {
-        const gas = typeof tx.gas === "string" && /^0x[0-9a-fA-F]{1,16}$/.test(tx.gas) ? Number(BigInt(tx.gas)) : Infinity;
-        if (gas > MAX_GAS) return { error: "Gas above the relay cap." };
+    switch (c.method) {
+      case "getAccountInfo":
+      case "getBalance":
+      case "getTokenAccountBalance":
+      case "getTokenSupply":
+      case "getSignaturesForAddress": {
+        if (p.length < 1 || p.length > 2 || typeof p[0] !== "string" || !BASE58.test(p[0])) return { error: `${c.method} needs one address.` };
+        const bad = checkConfig(p[1]);
+        if (bad) return { error: bad };
+        if (c.method === "getSignaturesForAddress" && !(p[1] && typeof (p[1] as { limit?: unknown }).limit === "number")) return { error: "getSignaturesForAddress needs a limit." };
+        break;
       }
-      if (typeof tx.data === "string" && tx.data.length > dataLimit(tx.to)) return { error: "Call data too large." };
-    }
-    if (c.method === "eth_getBlockByNumber" && params[1] !== false) return { error: "eth_getBlockByNumber is relayed only with full transactions off (false)." };
-    if (c.method === "eth_estimateGas") {
-      if (params.length > 2) return { error: "State overrides are not relayed." };
-      const tx = params[0] as { to?: unknown; gas?: unknown; data?: unknown } | undefined;
-      if (!tx || typeof tx !== "object") return { error: "eth_estimateGas needs a transaction." };
-      if (typeof tx.to !== "string" || !targets.has(tx.to.toLowerCase())) return { error: "eth_estimateGas target not served by this relay." };
-      const shaped = shapeTx(tx as Record<string, unknown>);
-      if (shaped) return { error: shaped };
-      if (params[1] !== undefined && !(typeof params[1] === "string" && BLOCK_TAG.test(params[1]))) return { error: "Unsupported block tag." };
-      if (tx.gas !== undefined) {
-        const gas = typeof tx.gas === "string" && /^0x[0-9a-fA-F]{1,16}$/.test(tx.gas) ? Number(BigInt(tx.gas)) : Infinity;
-        if (gas > MAX_GAS) return { error: "Gas above the relay cap." };
+      case "getMultipleAccounts": {
+        const keys = p[0];
+        if (!Array.isArray(keys) || keys.length === 0 || keys.length > MAX_KEYS || !keys.every((k) => typeof k === "string" && BASE58.test(k))) return { error: `getMultipleAccounts takes 1 to ${MAX_KEYS} addresses.` };
+        const bad = checkConfig(p[1]);
+        if (bad) return { error: bad };
+        break;
       }
-      if (typeof tx.data === "string" && tx.data.length > dataLimit(tx.to)) return { error: "Call data too large." };
+      case "getTokenAccountsByOwner": {
+        // A mint filter naming a mint the site reads is required: a program-wide filter could list hundreds of accounts.
+        const filter = p[1] as { mint?: unknown } | undefined;
+        if (typeof p[0] !== "string" || !BASE58.test(p[0])) return { error: "getTokenAccountsByOwner needs an owner." };
+        if (!filter || typeof filter !== "object" || Object.keys(filter).length !== 1 || typeof filter.mint !== "string" || !mints.has(filter.mint)) return { error: "getTokenAccountsByOwner needs a mint filter for a mint this site reads." };
+        const bad = checkConfig(p[2]);
+        if (bad) return { error: bad };
+        break;
+      }
+      case "getSignatureStatuses": {
+        const sigs = p[0];
+        if (!Array.isArray(sigs) || sigs.length === 0 || sigs.length > MAX_KEYS || !sigs.every((s) => typeof s === "string" && SIGNATURE.test(s))) return { error: "getSignatureStatuses takes 1 to 20 signatures." };
+        break;
+      }
+      case "getTransaction": {
+        if (typeof p[0] !== "string" || !SIGNATURE.test(p[0])) return { error: "getTransaction needs a signature." };
+        const bad = checkConfig(p[1]);
+        if (bad) return { error: bad };
+        break;
+      }
+      case "getRecentPrioritizationFees": {
+        const keys = p[0];
+        if (keys !== undefined && (!Array.isArray(keys) || keys.length > 128 || !keys.every((k) => typeof k === "string" && BASE58.test(k)))) return { error: "Bad account list." };
+        break;
+      }
+      default: {
+        const bad = checkConfig(p[0]);
+        if (bad) return { error: bad };
+      }
     }
   }
   return { units };
@@ -167,19 +126,15 @@ export type RelayDeps = {
 };
 
 /**
- * The relay's whole decision, without I/O of its own: shape and price first, then the budget, then
- * the target allowlist, and only then the upstream RPC. A refused request never reaches the RPC.
+ * The relay's whole decision, without I/O of its own: shape and price first, then the budget,
+ * and only then the upstream RPC. A refused request never reaches the RPC.
  */
 export async function runRelay(body: Call | Call[], deps: RelayDeps): Promise<{ status: number; body: unknown }> {
   const calls = Array.isArray(body) ? body : [body];
-  const targets = readTargets();
-  // First pass with every named address allowed, only to price the request and check its shape.
-  const priced = checkBatch(calls, new Set([...targets, ...namedAddresses(body)]));
-  if ("error" in priced) return { status: 400, body: { error: priced.error } };
-  const refused = await deps.charge(priced.units);
-  if (refused) return { status: 429, body: { error: refused } };
-  const checked = checkBatch(calls, targets);
+  const checked = checkBatch(calls);
   if ("error" in checked) return { status: 400, body: { error: checked.error } };
+  const refused = await deps.charge(checked.units);
+  if (refused) return { status: 429, body: { error: refused } };
   if (calls.length === 1 && !Array.isArray(body)) {
     const c = calls[0];
     const a = await deps.one(c.method, c.params ?? []);

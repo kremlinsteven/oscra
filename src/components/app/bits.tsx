@@ -67,3 +67,19 @@ export function StateChip({ state }: { state: string }) {
 export const n = (v: string) => (v.trim() === "" ? NaN : Number(v));
 export const fmt = (x: number, d = 2) => (Number.isFinite(x) ? x.toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d }) : "–");
 export const qtyFmt = (x: number) => (Number.isFinite(x) ? (x >= 1 ? x.toLocaleString("en-US", { maximumFractionDigits: 4 }) : x.toPrecision(4)) : "–");
+
+/** Real / practice switch shown at the top of a screen. */
+export function ModeTabs({ mode, setMode, realLabel, note }: { mode: "real" | "practice"; setMode: (m: "real" | "practice") => void; realLabel: string; note?: React.ReactNode }) {
+  return (
+    <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div role="tablist" aria-label="Mode" className="inline-flex w-fit rounded-full border border-line-2 bg-card p-1">
+        {(["real", "practice"] as const).map((m) => (
+          <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)} className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium ${mode === m ? "bg-ink text-card" : "text-mute hover:text-ink"}`} data-testid={`mode-${m}`}>
+            {m === "real" ? realLabel : "Practice"}
+          </button>
+        ))}
+      </div>
+      {note ? <p className="text-[12.5px] text-mute">{note}</p> : null}
+    </div>
+  );
+}

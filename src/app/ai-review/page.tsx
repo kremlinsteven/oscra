@@ -7,7 +7,7 @@ import { pageMeta } from "@/lib/seo";
 export const metadata = pageMeta({
   path: "/ai-review",
   title: `AI Trade Review | ${BRAND.name}`,
-  description: `The ${BRAND.name} trade review reads live prices on Robinhood Chain and lays out trend, invalidation, momentum and sizing before you commit a dollar.`,
+  description: `The ${BRAND.name} trade review reads live prices for Solana markets and lays out trend, invalidation, momentum and sizing before you commit a dollar.`,
 });
 
 const QUESTIONS = [
@@ -36,7 +36,7 @@ export default function AiReviewPage() {
       <section className="shell grid grid-cols-1 gap-10 py-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <div className="min-w-0">
           <ReviewPanel lane={1} />
-          <Note>Live read for NVDA, built from Chainlink rounds on Robinhood Chain.</Note>
+          <Note>Live read for NVDAx, built from four-hour candles of its deepest USDC pool on Solana.</Note>
         </div>
         <div>
           <Headline fade="Five questions" ink="every entry should answer." />
@@ -58,7 +58,7 @@ export default function AiReviewPage() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {[
             ["From the read to a plan", "The sizing box turns the stop distance and your risk rule into a position size, then splits it into orders and opens the plan form with the size filled in."],
-            ["Same prices as the contract", "Stock reads use the Chainlink feed history that the Runbook checks before every order. ETH adds four-hour candles from OKX for a finer series."],
+            ["Prices you can check", "xStocks reads use four-hour candles of the token's deepest USDC pool on Solana (GeckoTerminal). SOL uses OKX four-hour candles."],
             ["Honest about its limits", "This release is rule-based, with no language model writing the text. A written summary from an AI assistant is planned and will sit on top of the same numbers."],
           ].map(([t, b]) => (
             <div key={t} className="card p-6">
@@ -73,8 +73,7 @@ export default function AiReviewPage() {
         <div className="card-soft p-6 sm:p-10">
           <Headline fade={`${LANES.length} markets,`} ink="one method." />
           <p className="lead mt-5 max-w-[60ch]">
-            The review covers every Runbook lane: {LANES.map((l) => l.symbol).join(", ")}. Stock tokens are the official Robinhood tokens, identified by address and checked against the Chainlink feed
-            that carries the same name.
+            The review covers every market: {LANES.map((l) => l.symbol).join(", ")}. xStocks are identified by mint, never by ticker, and priced by the Pyth feed that carries the same name.
           </p>
           <p className="mt-6 text-[13px] text-mute">A review is analysis of public price data, not investment advice. Markets can move through any level without stopping.</p>
         </div>

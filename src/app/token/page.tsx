@@ -1,5 +1,5 @@
-import { BRAND, PONS_TOKEN_URL, TOKEN } from "@/config/brand";
-import { KEEL_TERMS, RUNBOOK_TERMS } from "@/config/lanes";
+import { BRAND, DEXSCREENER_TOKEN_URL, PUMP_TOKEN_URL, TOKEN } from "@/config/brand";
+import { PRACTICE_TERMS } from "@/config/lanes";
 import { ContractTag } from "@/components/site/ContractTag";
 import { Cta, Headline, PageHead } from "@/components/site/Blocks";
 import { TokenFacts } from "@/components/site/TokenFacts";
@@ -8,10 +8,10 @@ import { pageMeta } from "@/lib/seo";
 export const metadata = pageMeta({
   path: "/token",
   title: `${BRAND.name} (${BRAND.symbol}) Token`,
-  description: `${BRAND.symbol} is the ${BRAND.name} token on Robinhood Chain: stake it for a USDG share of every Runbook fee, a lower fee rate and a vote in polls.`,
+  description: `${BRAND.symbol} is the ${BRAND.name} token on Solana, launched on pump.fun: a vote in polls weighted by what you hold, and a fee share and discount you can try in practice.`,
 });
 
-const tokens = (v: bigint) => Number(v / 10n ** 18n).toLocaleString("en-US");
+const tokens = (v: number) => v.toLocaleString("en-US");
 
 export default function TokenPage() {
   return (
@@ -19,8 +19,8 @@ export default function TokenPage() {
       <PageHead
         tag={`${BRAND.symbol} · ${BRAND.chainName}`}
         fade={`${BRAND.symbol}:`}
-        ink="a share of the fees, a lower rate, a vote."
-        lead={`${BRAND.symbol} connects holders to the one thing ${BRAND.name} earns: the fee on each order. Every use below is a function in a published contract, not a promise on a slide.`}
+        ink="a vote today, a fee share in practice."
+        lead={`${BRAND.symbol} is a pump.fun token on Solana (1,000,000,000 supply, 6 decimals). Below is exactly what it does today and what runs only as practice, with no promise attached.`}
         aside={
           <div className="grid gap-3">
             <ContractTag shape="slab" />
@@ -29,22 +29,27 @@ export default function TokenPage() {
         }
       >
         {TOKEN.isLive ? (
-          <a href={PONS_TOKEN_URL(BRAND.ca)} target="_blank" rel="noreferrer" className="btn btn-ink">
-            Trade on Pons
-          </a>
+          <>
+            <a href={PUMP_TOKEN_URL(BRAND.ca)} target="_blank" rel="noreferrer" className="btn btn-ink">
+              Trade on pump.fun
+            </a>
+            <a href={DEXSCREENER_TOKEN_URL(BRAND.ca)} target="_blank" rel="noreferrer" className="btn btn-ghost">
+              Chart
+            </a>
+          </>
         ) : (
-          <span className="btn btn-ghost cursor-default">Launching on Pons, Robinhood Chain</span>
+          <span className="btn btn-ghost cursor-default">Launching on pump.fun, Solana</span>
         )}
         <Cta href="/contracts" kind="ghost">
-          Read the contracts
+          How it runs on-chain
         </Cta>
       </PageHead>
 
       <section className="shell grid grid-cols-1 gap-4 py-12 md:grid-cols-3">
         {[
-          ["Fee share", "Live once OscraKeel is deployed", `Stake ${BRAND.symbol} in OscraKeel. Every USDG fee the Runbook collects is split across stakers by stake size, claimable at any time.`],
-          ["Lower fee", "Live once the Runbook is bound", `Hold or stake ${tokens(RUNBOOK_TERMS.holderMin)} ${BRAND.symbol} and your orders pay ${RUNBOOK_TERMS.holderFeeBps / 100}% instead of ${RUNBOOK_TERMS.feeBps / 100}%. Checked per order, on-chain.`],
-          ["Polls", "Live once OscraKeel is deployed", `Stakers vote with their stake. ${tokens(KEEL_TERMS.proposerMin)} staked opens a poll on features, markets or the fee for the next contract version. A vote locks the stake until the poll ends.`],
+          ["Polls", "Live at launch", `Vote with a free wallet signature; the vote weighs the ${BRAND.symbol} your wallet holds at that moment. ${tokens(PRACTICE_TERMS.proposerMin)} ${BRAND.symbol} in a wallet opens a poll. Results are advisory.`],
+          ["Fee share", "Practice", `Stake practice ${BRAND.symbol} in the workspace and claim a share of practice fees. No staking program exists and no real fee is collected, so nothing here pays out.`],
+          ["Lower fee", "Practice", `Hold or stake ${tokens(PRACTICE_TERMS.holderMin)} practice ${BRAND.symbol} and practice orders pay ${PRACTICE_TERMS.holderFeeBps / 100}% instead of ${PRACTICE_TERMS.feeBps / 100}%. Real Jupiter orders pay no ${BRAND.name} fee at all.`],
         ].map(([t, s, b]) => (
           <div key={t} className="card flex flex-col p-6">
             <h2 className="subhead">{t}</h2>
@@ -57,10 +62,10 @@ export default function TokenPage() {
       <section className="shell grid grid-cols-1 gap-10 py-16 lg:grid-cols-2">
         <Headline fade="What the token" ink="does not do." />
         <ul className="space-y-3 text-[15px] text-ink-2">
-          <li>It does not give anyone control of the contracts. They have no admin, and a poll result cannot change a deployed contract.</li>
-          <li>It does not promise a return. Fee share depends entirely on how much people trade through the Runbook.</li>
+          <li>It does not give anyone control of your funds. {BRAND.name} has no contract to control, and a poll only shapes what gets built next.</li>
+          <li>It does not promise a return. The fee share is practice only; there is no real revenue paid to holders.</li>
           <li>Premium features and API access for holders are planned, not live. They will be announced with their terms first.</li>
-          <li>Thresholds above assume a supply of one billion tokens and are set once, at deployment.</li>
+          <li>Thresholds above assume the pump.fun supply of one billion tokens.</li>
         </ul>
       </section>
 
@@ -70,9 +75,9 @@ export default function TokenPage() {
             <span className="fade">How to get</span> {BRAND.symbol}
           </h2>
           <ol className="mt-6 grid grid-cols-1 gap-4 text-[14.5px] text-ink-2 md:grid-cols-3">
-            <li>1. Add Robinhood Chain to an EVM wallet: connecting on this site does it for you.</li>
-            <li>2. Bridge or buy ETH on Robinhood Chain for gas and for the trade.</li>
-            <li>3. {TOKEN.isLive ? `Buy ${BRAND.symbol} on its Pons page, using the contract address above.` : `At launch, buy ${BRAND.symbol} on Pons. Use only the address published on this page and on X ${BRAND.xHandle}.`}</li>
+            <li>1. Install a Solana wallet such as Phantom, Solflare or Backpack.</li>
+            <li>2. Fund it with SOL for the trade and the network fee.</li>
+            <li>3. {TOKEN.isLive ? `Buy ${BRAND.symbol} on its pump.fun page, using the mint address above.` : `At launch, buy ${BRAND.symbol} on pump.fun. Use only the mint address published on this page and on X ${BRAND.xHandle}.`}</li>
           </ol>
         </div>
       </section>

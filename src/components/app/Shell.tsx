@@ -18,7 +18,7 @@ const TABS = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  const { live, book, skew, reset, notices, dismiss } = useWorkspace();
+  const { book, skew, reset, notices, dismiss } = useWorkspace();
   const { address } = useWallet();
   const { open } = useWalletModal();
   return (
@@ -28,24 +28,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <span className="tag">Workspace</span>
           <h1 className="mt-3 text-[30px] font-medium tracking-[-0.03em]">Your trading desk</h1>
         </div>
-        <div className={`flex min-w-0 flex-wrap items-center gap-2 rounded-[16px] border px-3 py-2 text-[12.5px] ${live ? "border-lime/60 bg-lime-soft" : "border-line-2 bg-card"}`} data-testid="mode-banner">
-          {live ? <Radio size={14} className="text-olive" /> : <FlaskConical size={14} className="text-warn" />}
-          <span className="font-semibold">{live ? "Live: real transactions on Robinhood Chain" : "Practice mode"}</span>
-          {live ? null : (
-            <>
-              <span className="text-mute">live prices, simulated wallet, nothing sent</span>
-              {book.skew ? <span className="num text-mute">clock +{span(book.skew)}</span> : null}
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => skew(3600)}>
-                +1 h
-              </button>
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => skew(86_400)}>
-                +1 day
-              </button>
-              <button type="button" className="btn btn-ghost btn-sm" onClick={reset}>
-                Reset
-              </button>
-            </>
-          )}
+        <div className="flex min-w-0 flex-wrap items-center gap-2 rounded-[16px] border border-line-2 bg-card px-3 py-2 text-[12.5px]" data-testid="mode-banner">
+          <Radio size={14} className="text-olive" />
+          <span className="font-semibold">Real orders go through your wallet on Solana</span>
+          <span className="text-mute">·</span>
+          <FlaskConical size={14} className="text-warn" />
+          <span className="text-mute">practice book</span>
+          {book.skew ? <span className="num text-mute">clock +{span(book.skew)}</span> : null}
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => skew(3600)}>
+            +1 h
+          </button>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => skew(86_400)}>
+            +1 day
+          </button>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={reset}>
+            Reset
+          </button>
         </div>
       </div>
       <nav aria-label="Workspace" className="scroll-x mt-6 flex gap-1 border-b border-line">
@@ -57,7 +55,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </nav>
       {!address ? (
         <div className="mt-6 flex flex-col gap-3 rounded-[18px] border border-line bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-[14px] text-ink-2">{live ? "Connect a wallet to see your balances, plans and follows." : "You can practice without a wallet. Connect one to keep a separate practice book per address and to see your real balances."}</p>
+          <p className="text-[14px] text-ink-2">You can practice without a wallet. Connect one to place real Jupiter orders, follow desks, vote, and keep a separate practice book per address.</p>
           <button type="button" onClick={open} className="btn btn-ink shrink-0">
             Connect wallet
           </button>

@@ -10,11 +10,11 @@ export const metadata = pageMeta({
 });
 
 const FLOW = [
-  ["A desk posts an idea", "Any wallet can act as a desk. An idea names a market, buy or sell, and a weight from 1% to 100%. The live feed price is stored with it."],
+  ["A desk posts an idea", "Any wallet can act as a desk. An idea names a market, buy or sell, and a weight from 1% to 100%. The live price is stored with it by the server."],
   ["Your review delay runs", `Up to ${LIMITS.maxReviewDelayH} hours, chosen by you. During it the idea sits in your inbox and you can skip it for good.`],
-  ["The copy window opens", `For ${LIMITS.mirrorWindowH} hours anyone may execute the copy for you, you included. After that the idea expires for your wallet.`],
+  ["The copy window opens", `For ${LIMITS.mirrorWindowH} hours you can copy it with one Jupiter swap you sign. After that the idea expires for your wallet.`],
   ["Your limits decide", "Is the market in your list? Has price run further than your chase limit? Would it pass your daily cap or position cap? Any no, and nothing happens."],
-  ["The trade lands in your wallet", "A buy spends your per-idea amount times the weight. A sell sells that share of what you copied from this desk. Proceeds return to you in the same transaction."],
+  ["The trade lands in your wallet", "A buy spends your per-idea amount times the weight. A sell sells that share of what you copied from this desk. The swap goes from your wallet to your wallet."],
 ];
 
 export default function CopyTradingPage() {
@@ -49,7 +49,7 @@ export default function CopyTradingPage() {
         <div>
           <Headline fade="Limits that belong" ink="to the follower." />
           <p className="lead mt-6">
-            The desk never sees your settings and cannot change them. They are stored with your follow in the Runbook contract and checked on every copy.
+            The desk never sees your settings and cannot change them. They are signed by your wallet, stored with your follow, and checked before every copy is built.
           </p>
         </div>
         <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -75,7 +75,7 @@ export default function CopyTradingPage() {
             <span className="fade">No leaderboard.</span> No invented track records.
           </h2>
           <p className="lead mt-5 max-w-[64ch]">
-            Desks on {BRAND.name} start with no history, and the site does not rank them by returns it cannot verify. Every idea is public on-chain with its posting price, so a record can be built from
+            Desks on {BRAND.name} start with no history, and the site does not rank them by returns it cannot verify. Every idea is public on this site with its posting price, so a record can be built from
             real data over time. Until then, start small and let your caps do their job.
           </p>
         </div>

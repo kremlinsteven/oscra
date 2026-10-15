@@ -13,8 +13,8 @@ export const metadata = pageMeta({
 const STAGES = [
   ["Review", "Five checks and a stop distance from live prices."],
   ["Your rules", "Size, pace, caps, ceilings and pauses you write."],
-  ["Feed check", "Chainlink price read inside the transaction."],
-  ["Swap", "One order through a fixed Uniswap v3 pool."],
+  ["Limit check", "Window, chase, caps and stop checked before a swap is built."],
+  ["Swap", "A Jupiter order or swap your wallet signs."],
   ["Your wallet", "The asset arrives at your address. Nothing is kept."],
 ];
 
@@ -83,9 +83,9 @@ export default function FeaturesPage() {
       <section className="shell grid grid-cols-1 gap-4 py-16 md:grid-cols-2 lg:grid-cols-4">
         {[
           ["Copy desks", "Follow a wallet's ideas with a review delay, skips, daily and position caps, a chase limit and a stop."],
-          ["Portfolio view", "Balances of ETH, USDG and the ten lane tokens, valued at feed prices, with your largest share and your allowance."],
-          ["Practice mode", "Every screen on live prices with a simulated wallet, until the contract is deployed or whenever you want to test."],
-          [`${BRAND.symbol} staking`, "Fee share in USDG, a lower fee for holders, and advisory polls, once the token is live."],
+          ["Portfolio view", "Balances of USDC and the ten markets, valued at live prices, with your largest share and your open recurring orders."],
+          ["Practice mode", "Every screen on live prices with a simulated wallet, one tab away from real mode."],
+          [`${BRAND.symbol} polls and practice staking`, "Wallet-signed polls weighted by the token you hold; fee share and holder discount in practice."],
         ].map(([t, b]) => (
           <div key={t} className="card p-5">
             <h2 className="text-[16px] font-semibold">{t}</h2>
@@ -98,9 +98,9 @@ export default function FeaturesPage() {
         <div className="panel grid grid-cols-1 gap-6 p-6 sm:p-10 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
           <div>
             <h2 className="text-[clamp(26px,3.4vw,40px)] leading-tight font-medium tracking-[-0.03em]">
-              <span className="text-night-mute">One allowance</span> stops everything.
+              <span className="text-night-mute">No standing approval.</span> Nothing to revoke.
             </h2>
-            <p className="mt-3 max-w-[56ch] text-[15px] text-night-mute">Set the Runbook&apos;s USDG allowance to zero and no plan or follow can spend another cent. The button sits on your workspace overview.</p>
+            <p className="mt-3 max-w-[56ch] text-[15px] text-night-mute">Every real action is a transaction you sign at that moment. Cancel a recurring order and its unspent USDC comes back; unfollow a desk and its ideas stop.</p>
           </div>
           <Cta href="/connect-guide" kind="lime">
             Permissions guide

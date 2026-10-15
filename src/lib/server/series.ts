@@ -1,15 +1,12 @@
 import "server-only";
-import { decodeFunctionResult, encodeFunctionData, type Abi } from "viem";
 import { laneById, type Lane } from "@/config/lanes";
-import { FEED_ABI } from "@/lib/abi";
-import { rpcBatch } from "@/lib/feeds/rpc";
 import { readCappedResponse } from "@/lib/server/capped";
 import type { Point } from "@/lib/review";
 
 /*
  * Price history for the review, all from free public sources without keys:
- *   ETH     OKX 4-hour candles (ETH-USDT), newest first in the answer, so reversed; Chainlink rounds as fallback.
- *   Stocks  the Chainlink feed's own rounds, read on-chain (a new round on every 0.5% move or once a day).
+ *   SOL     OKX 4-hour candles (SOL-USDT), newest first in the answer, so reversed; pool candles as fallback.
+ *   xStocks 4-hour candles of the token's deepest USDC pool on Solana, from GeckoTerminal.
  */
 
 export type Series = { points: Point[]; source: string; unit: string };
@@ -19,7 +16,7 @@ async function okxCandles(): Promise<Point[] | null> {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 6000);
     try {
-      const res = await fetch("https://www.okx.com/api/v5/market/candles?instId=ETH-USDT&bar=4H&limit=150", { cache: "no-store", signal: ctrl.signal, headers: { accept: "application/json" } });
+      const res = await fetch("https://www.okx.com/api/v5/market/candles?instId=SOL-USDT&bar=4H&limit=150", { cache: "no-store", signal: ctrl.signal, headers: { accept: "application/json" } });
       if (!res.ok || !res.body) continue;
       const text = await readCappedResponse(res, 200_000);
       if (!text) return null;
@@ -39,44 +36,53 @@ async function okxCandles(): Promise<Point[] | null> {
   return null;
 }
 
-/** The last `count` rounds of a Chainlink feed, oldest first. Stays inside the current phase. */
-async function feedRounds(lane: Lane, count = 120): Promise<Point[] | null> {
-  const abi = FEED_ABI as Abi;
-  const latestCall = { method: "eth_call", params: [{ to: lane.feed, data: encodeFunctionData({ abi, functionName: "latestRoundData" }) }, "latest"] };
-  const [raw] = await rpcBatch<string>([latestCall]).catch(() => [null]);
-  if (typeof raw !== "string") return null;
-  const latest = decodeFunctionResult({ abi, functionName: "latestRoundData", data: raw as `0x${string}` }) as readonly [bigint, bigint, bigint, bigint, bigint];
-  const id = latest[0];
-  const phase = id >> 64n;
-  const agg = id & ((1n << 64n) - 1n);
-  const ids: bigint[] = [];
-  for (let k = BigInt(count - 1); k >= 1n; k--) if (agg > k) ids.push((phase << 64n) | (agg - k));
-  const points: Point[] = [];
-  for (let i = 0; i < ids.length; i += 40) {
-    const chunk = ids.slice(i, i + 40);
-    const answers = await rpcBatch<string>(chunk.map((r) => ({ method: "eth_call", params: [{ to: lane.feed, data: encodeFunctionData({ abi, functionName: "getRoundData", args: [r] }) }, "latest"] }))).catch(() => chunk.map(() => null));
-    answers.forEach((a) => {
-      if (typeof a !== "string" || a.length < 10) return;
-      try {
-        const v = decodeFunctionResult({ abi, functionName: "getRoundData", data: a as `0x${string}` }) as readonly [bigint, bigint, bigint, bigint, bigint];
-        if (v[1] > 0n && v[3] > 0n) points.push({ t: Number(v[3]), close: Number(v[1]) / 1e8 });
-      } catch {
-        // skip a round that does not decode
-      }
-    });
+async function getJson<T>(url: string, limit = 400_000): Promise<T | null> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 7000);
+  try {
+    const res = await fetch(url, { cache: "no-store", signal: ctrl.signal, headers: { accept: "application/json" } });
+    if (!res.ok || !res.body) return null;
+    const text = await readCappedResponse(res, limit);
+    return text ? (JSON.parse(text) as T) : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
   }
-  if (latest[1] > 0n) points.push({ t: Number(latest[3]), close: Number(latest[1]) / 1e8 });
-  points.sort((a, b) => a.t - b.t);
-  return points.length >= 30 ? points : null;
+}
+
+/** Deepest USDC pool of a mint on GeckoTerminal, remembered per server instance. */
+const poolOf = new Map<string, string>();
+async function deepestPool(lane: Lane): Promise<string | null> {
+  const known = poolOf.get(lane.mint);
+  if (known) return known;
+  const body = await getJson<{ data?: { attributes: { address: string; name: string; reserve_in_usd: string } }[] }>(`https://api.geckoterminal.com/api/v2/networks/solana/tokens/${lane.mint}/pools?page=1`);
+  const pools = (body?.data ?? []).filter((p) => /\/\s*USDC$/i.test(p.attributes.name)).sort((a, b) => Number(b.attributes.reserve_in_usd) - Number(a.attributes.reserve_in_usd));
+  const best = pools[0]?.attributes.address ?? null;
+  if (best) poolOf.set(lane.mint, best);
+  return best;
+}
+
+/** 4-hour candles of the lane's deepest USDC pool (GeckoTerminal, free, no key), oldest first. */
+async function poolCandles(lane: Lane): Promise<Point[] | null> {
+  const pool = await deepestPool(lane);
+  if (!pool) return null;
+  const body = await getJson<{ data?: { attributes?: { ohlcv_list?: number[][] } } }>(`https://api.geckoterminal.com/api/v2/networks/solana/pools/${pool}/ohlcv/hour?aggregate=4&limit=150&currency=usd&token=base`);
+  const rows = body?.data?.attributes?.ohlcv_list ?? [];
+  const pts = rows
+    .map((r) => ({ t: Number(r[0]), high: Number(r[2]), low: Number(r[3]), close: Number(r[4]) }))
+    .filter((p) => Number.isFinite(p.close) && p.close > 0)
+    .sort((x, y) => x.t - y.t);
+  return pts.length >= 30 ? pts : null;
 }
 
 export async function readSeries(laneId: number): Promise<Series | null> {
   const lane = laneById(laneId);
   if (!lane) return null;
-  if (lane.symbol === "ETH") {
+  if (lane.symbol === "SOL") {
     const okx = await okxCandles();
-    if (okx) return { points: okx, source: "OKX ETH-USDT 4-hour candles", unit: "candle" };
+    if (okx) return { points: okx, source: "OKX SOL-USDT 4-hour candles", unit: "candle" };
   }
-  const rounds = await feedRounds(lane);
-  return rounds ? { points: rounds, source: `Chainlink ${lane.symbol} / USD rounds on Robinhood Chain`, unit: "update" } : null;
+  const pool = await poolCandles(lane);
+  return pool ? { points: pool, source: `${lane.symbol} / USDC pool 4-hour candles on Solana (GeckoTerminal)`, unit: "candle" } : null;
 }

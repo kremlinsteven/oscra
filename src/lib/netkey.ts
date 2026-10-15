@@ -8,7 +8,7 @@
  *   a4:<a.b.c>.0/24      IPv4 aggregate
  *   a6:<a:b:c>/48        IPv6 aggregate
  *   a:unparsed           aggregate of everything unparsable
- *   w:<0x…>              a wallet proven by its signature
+ *   w:<base58>           a Solana wallet proven by its signature (case-sensitive)
  */
 
 export const DIRECT = "direct";
@@ -55,7 +55,7 @@ export function aggregateKey(key: string): string | null {
 export const isAggregate = (key: string) => /^a[46]?:/.test(key) || key === DIRECT;
 
 /** A wallet already proven by its signature. */
-export const walletKey = (address: string) => `w:${address.toLowerCase()}`;
+export const walletKey = (address: string) => `w:${address}`;
 
 /** Forwarded headers are only believed on Vercel (its edge overwrites them) or with TRUST_PROXY_HEADERS=1. */
 export const trustsProxyHeaders = () => Boolean(process.env.VERCEL) || process.env.TRUST_PROXY_HEADERS === "1";

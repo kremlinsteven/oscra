@@ -7,8 +7,8 @@ export function PlanCard() {
     <div className="panel overflow-hidden">
       <div className="flex items-center justify-between gap-3 px-5 pt-5">
         <div className="min-w-0">
-          <p className="text-[15px] font-semibold">Plan · NVDA</p>
-          <p className="text-[12px] text-night-mute">USDG → NVIDIA stock token · Uniswap 0.05% pool</p>
+          <p className="text-[15px] font-semibold">Plan · NVDAx</p>
+          <p className="text-[12px] text-night-mute">USDC → NVIDIA xStock · Jupiter Recurring</p>
         </div>
         <span className="chip chip-clear">Example</span>
       </div>
@@ -16,8 +16,8 @@ export function PlanCard() {
         {[
           ["Order", "$250"],
           ["Every", "48 hours"],
-          ["Budget", "$3,000"],
-          ["Slippage", "1.5%"],
+          ["Orders", "12"],
+          ["Deposit", "$3,000"],
         ].map(([k, v]) => (
           <div key={k} className="bg-night px-4 py-3">
             <p className="label">{k}</p>
@@ -27,9 +27,9 @@ export function PlanCard() {
       </div>
       <ul>
         {[
-          [ShieldCheck, "Price ceiling", "Skip any buy while NVDA is above $260"],
-          [Pause, "Drawdown guard", "Pause if price falls 15% under my average"],
-          [Target, "Target pause", "Pause once price is 25% over my average"],
+          [ShieldCheck, "Price ceiling", "Orders wait while NVDAx is above $260"],
+          [Pause, "Drawdown guard (practice)", "Pause if price falls 15% under my average"],
+          [Target, "Target pause (practice)", "Pause once price is 25% over my average"],
         ].map(([Icon, k, v]) => {
           const I = Icon as typeof Pause;
           return (
@@ -55,7 +55,7 @@ export function PlanCard() {
             </div>
           ))}
         </div>
-        <p className="mt-3 text-[11.5px] text-night-mute">Twelve orders spend the budget; the plan then stops by itself.</p>
+        <p className="mt-3 text-[11.5px] text-night-mute">Twelve orders spend the deposit; cancel any time to get the rest back.</p>
       </div>
     </div>
   );
