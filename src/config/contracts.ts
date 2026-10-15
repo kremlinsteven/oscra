@@ -7,11 +7,11 @@ import { isAddress } from "@/config/brand";
  */
 const DEPLOYED = {
   /** OscraRunbook: recurring buys, desks, follows. Needs no token; can go live now. */
-  runbook: "",
+  runbook: "0x1b9ac660b034e7ed285518a18443af12a854eb92",
   /** OscraKeel: $OSCRA staking, USDG fee share, polls. Needs the token address (after launch). */
   keel: "",
   /** Block of the OscraRunbook deployment: event scans start here. */
-  fromBlock: 0,
+  fromBlock: 89189094,
 };
 
 /**

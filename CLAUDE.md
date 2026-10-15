@@ -80,3 +80,8 @@ a paid API + key: say if wanted); exchange connections (Binance/OKX API keys) de
 - Server: http://localhost:5120 (next start) left running. Anvil fork and the e2e server are stopped.
 - X statements: 2026/oktober/16/statement/oscra.txt (10, 182-237 chars, 5-gram overlap 0).
 - Nothing deployed. Next: owner deploys OscraRunbook from /deploy (no token needed), pastes the address, verify-deployment.
+
+## Live contracts (16 Oct 2026)
+- OscraRunbook 0x1b9ac660b034e7ed285518a18443af12a854eb92 (tx 0xcb01a961…5b27), fromBlock 89189094. verify-deployment MATCH; Blockscout verified.
+- binder (only wallet that can call bind(keel), once) = deployer 0x641baa6a7b3e5bfc2c4ce9d80a2ef2584486cfa3 — the owner must keep it.
+- Not bound yet: fees are 0 until OscraKeel is deployed after the CA and bound. /deploy stays (localhost only) for Keel + Bind.
