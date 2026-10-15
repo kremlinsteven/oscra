@@ -1,7 +1,7 @@
 # OSCRA — Oscra: Non-custodial trading automation. AI review. Visible controls. Your assets stay yours.
 
-OSCRA is a non-custodial workspace for trading automation on Robinhood Chain. Recurring buys and copied trades run from
-your own wallet under limits you write, and a rule-based review explains a market before you commit.
+OSCRA is a non-custodial workspace for trading automation on Solana. Recurring buys and copied trades run from your own
+wallet under limits you write, and a rule-based review explains a market before you commit.
 
 Website: https://oscra.xyz · X: [@oscra](https://x.com/oscra)
 
@@ -13,47 +13,51 @@ inspect on money that stays yours.
 
 ## The solution
 
-OSCRA puts the rules in a public contract and leaves the money in your wallet:
+OSCRA has no smart contract of its own and never holds funds. Every real order is an existing Solana rail that your
+wallet signs:
 
-- **Recurring buys (DCA).** Fixed order size, pace and budget, with an optional price ceiling, drawdown guard and target
-  pause. The contract checks every rule before every buy.
-- **Copy desks.** Follow any wallet that posts trade ideas. Each copy passes your review delay, daily cap, position cap,
-  chase limit and stop. Skip any idea you dislike.
+- **Recurring buys (DCA).** A Jupiter Recurring order: fixed USDC per order, number of orders, pace and an optional price
+  range. Jupiter fills it on schedule; you can cancel it any time and get the unspent USDC and everything bought back.
+- **Copy desks.** Follow any Solana wallet that posts trade ideas. Each copy must pass your review delay, copy window,
+  chase limit, daily cap, position cap and stop before OSCRA builds a Jupiter swap, which your wallet then confirms.
 - **Trade review.** Five checks from live prices (trend, invalidation, momentum, room overhead, volatility) and a position
   size from your account, your risk rule and the stop distance.
-- **$OSCRA.** Stake it for a USDG share of every fee, hold or stake enough for a lower fee rate, and vote in polls.
+- **$OSCRA.** A pump.fun token. Polls weigh the $OSCRA your wallet holds at vote time. Staking, fee share and the holder
+  discount run as practice (no funds move).
 
 ## How it works
 
-1. You approve the `OscraRunbook` contract to spend USDG from your wallet. That allowance is the only thing it can use.
-2. When a buy is due, anyone may call it: you, or a keeper that collects a tip you chose.
-3. The contract reads the Chainlink price for the market, applies your ceiling, guard and target, pulls exactly one order,
-   swaps it on the market's Uniswap v3 USDG pool with a minimum set from the feed price, and the asset lands in your wallet.
-4. The contract ends every transaction holding nothing. No owner, no admin key, no upgrade path.
-5. Fees are zero until $OSCRA launches and the staking contract (`OscraKeel`) is linked once. Then 0.20% per order
-   (0.10% for holders and stakers), all of it shared with stakers.
-
-Markets: ETH and nine official Robinhood stock tokens (NVDA, SPY, QQQ, AAPL, GOOGL, TSLA, MSFT, AMZN, META), each
-identified by address and paired with its Chainlink USD feed.
+1. **Recurring buys.** The workspace asks Jupiter's Recurring API for a create-order transaction, your wallet signs it,
+   and Jupiter lands it. Orders are read back by wallet address and can be cancelled the same way.
+2. **Follows, ideas, skips, polls and votes** are wallet-signed records: `signMessage` over a stateless server nonce
+   (random + HMAC, valid five minutes), verified with ed25519 (tweetnacl) against your address, used once. They move
+   no funds.
+3. **Copies.** When a followed desk posts an idea, the server stores the live price with it. Inside your copy window the
+   workspace checks your limits, asks Jupiter for a quote with your slippage limit and builds the swap. After it lands,
+   the server reads the transaction (`getTransaction`): your wallet paid, it succeeded, and USDC and the asset moved the
+   way the idea said. Only then does it count toward your caps and holdings.
+4. **Prices** come from Pyth's on-chain push feed when fresh (SOL), else from the Jupiter price API, always matched by
+   mint. The review reads OKX four-hour candles for SOL and GeckoTerminal pool candles for xStocks.
 
 ## What you can try
 
-**Live now**
-- The website with live Robinhood Chain data: block, gas, Chainlink prices for all ten markets.
-- The trade review for every market (OKX candles for ETH, Chainlink rounds for stock tokens).
-- The workspace in **practice mode**: the contract's rules in TypeScript, on live prices, with a simulated wallet kept in
-  your browser. Plans, pauses, follows, review windows, skips and caps all behave like the contract.
-- Wallet connect (EIP-6963 wallets, WalletConnect when configured), with Robinhood Chain added on connect.
+Live now:
 
-**Coming later**
-- Deployment of `OscraRunbook` (then the same screens send real transactions), the $OSCRA launch, `OscraKeel` and the bind.
-- A keeper that runs due buys automatically.
-- An assistant-written summary on top of the review numbers; premium features and API access for holders.
-- Centralized exchange connections are **not** part of this release, and no exchange API keys are requested or stored.
+- Trade review for all ten markets, from live data.
+- Real recurring buys through Jupiter Recurring (at least 50 USDC per order, 2+ orders; Jupiter keeps 0.1% per fill).
+- Real copy desks: sign a follow, post ideas as a desk, copy ideas with Jupiter swaps.
+- Practice mode on every screen: 10,000 practice USDC in your browser, a practice clock, drawdown guard and target pause.
+- Practice staking with fee share and the holder discount.
+
+Coming later:
+
+- Polls and votes open once $OSCRA is live on pump.fun.
+- An assistant-written summary on top of the review numbers.
+- Optional on-chain anchoring of records with the SPL Memo program.
 
 ## Run it locally
 
-Requirements: Node.js 20+ and npm.
+Requirements: Node.js 20 or newer.
 
 ```bash
 npm install
@@ -61,90 +65,60 @@ npm run build
 npm start            # http://localhost:5120
 ```
 
-Every environment variable is optional; the site builds and runs with none:
+`npm test` runs the unit tests (relay rules, signed records, nonce and signature checks, store limits, copy limits,
+practice rules, review maths). `npx tsc --noEmit` and `npx eslint src` check types and lint.
 
-```bash
-ROBINHOOD_RPC_URL=                     # private RPC for server reads (default: public Robinhood Chain RPC)
-NEXT_PUBLIC_ROBINHOOD_RPC_URL=         # private RPC for browser reads
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=  # from cloud.reown.com; without it WalletConnect shows "not configured"
-KV_REST_API_URL= / KV_REST_API_TOKEN=  # shared Redis for relay rate limits (in-memory without it)
-```
+Environment variables are optional; the site works with none:
 
-Put them in `.env.local` locally, or in your hosting provider's environment settings.
-
-Tests:
-
-```bash
-npm test                     # relay, practice rules, review rules, deployment checker
-npx tsc --noEmit && npx eslint
-```
-
-### Contracts
-
-```bash
-cd contracts && ./setup.sh   # fetches forge-std into contracts/lib
-forge test --no-match-path 'test/fork/*'
-forge test --match-path 'test/fork/*' --fork-url https://robinhood.drpc.org --evm-version cancun
-```
-
-After a forge build, `npm run contracts:artifacts` regenerates `src/lib/contracts/artifacts.json` (used by the site and the
-checker); `npm run contracts:artifacts -- --check` proves the committed file matches your build.
-
-### Verify a deployment
-
-```bash
-npm run verify-deployment -- --runbook <address> --runbook-tx <creation tx hash> \
-  [--keel <address> --keel-tx <hash> --token <$OSCRA address>]
-```
-
-It compares the runtime code byte for byte, checks every immutable against its expected value, reads back the ten stored
-markets, and requires the creation transaction to be exactly this build plus the expected constructor arguments. Any
-failure prints FAIL and exits non-zero.
-
-## Robinhood Chain in your wallet
-
-| Field | Value |
+| Name | Purpose |
 |---|---|
-| Network | Robinhood Chain |
-| Chain id | 4663 |
-| RPC | https://rpc.mainnet.chain.robinhood.com |
-| Currency | ETH |
-| Explorer | https://robinhoodchain.blockscout.com |
+| `SOLANA_RPC_URL` | Server-side Solana RPC (for example a Helius or QuickNode URL). Defaults to the public mainnet RPC. |
+| `NEXT_PUBLIC_SOLANA_RPC_URL` | Browser RPC the wallet sends transactions through. Defaults to the public mainnet RPC. |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | Redis REST store for records and rate limits. Without it, a local run keeps records in memory; a deployment refuses writes (503) until it is set. |
+| `TRUST_PROXY_HEADERS` | Set to `1` behind a proxy you control so per-IP limits read the forwarded address (automatic on Vercel). |
 
-Connecting on the site adds it for you.
+Put them in `.env.local` for a local run, or in your host's project settings. Never commit real values.
+
+## Solana in your wallet
+
+OSCRA runs on Solana mainnet. Any Wallet Standard wallet is detected automatically (Phantom, Solflare, Backpack and
+others); there is no network to add. You need a little SOL for fees and USDC for orders.
 
 ## Project layout
 
 ```
-contracts/           Foundry project: OscraRunbook, OscraKeel, OscraWire + unit, fuzz, invariant and fork tests
-scripts/             contract artifacts generator, verify-deployment and its checks
-src/app/             pages, the /app workspace, API routes (rpc relay, chain snapshot, review)
-src/components/      site chrome, home sections, workspace screens, wallet dialog
-src/config/          brand, markets (lanes), contract addresses, wallets
-src/lib/             practice rules, review rules, chain reads, relay rules, formatting
-public/              brand images and wallet logos
+src/app/              pages and API routes (/api/rpc relay, /api/chain snapshot, /api/review, /api/nonce, /api/records)
+src/components/app/   workspace screens (overview, recurring buys, copy desks, review, stake and vote)
+src/components/wallet wallet adapter provider and account menu
+src/config/           brand, markets (mints, Pyth feed ids), limits
+src/lib/              Jupiter client, copy limits, practice engine, review rules, relay rules, signed records
+src/lib/server/       snapshot, price series, records store and checks, rate limits
 ```
 
-## Contracts and token
+## Markets and token
 
-| Contract | Address |
-|---|---|
-| OscraRunbook | not deployed yet |
-| OscraKeel | not deployed yet (after the $OSCRA launch) |
-| $OSCRA | announced at launch on the site and on X |
+Markets: SOL and nine xStocks (NVDAx, SPYx, QQQx, AAPLx, GOOGLx, TSLAx, MSFTx, AMZNx, METAx), identified by mint, priced
+in USDC (`EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`). xStocks are Token-2022 mints whose issuer holds a pause switch
+and a permanent delegate.
+
+$OSCRA launches on pump.fun (1,000,000,000 supply, 6 decimals). The mint address is published on the website's token
+page and on X only.
 
 ## Security and status
 
-- Contracts are tested with unit, fuzz, invariant and mainnet-fork tests, and an end-to-end run on a local fork.
-- No owner, no admin key, no pause, no upgrade. The single privileged step is the one-time `bind` by the deploying wallet.
-- The trade review is analysis of public data, not advice. Read the risk page on the website before using real funds.
-- Report security issues privately by direct message to [@oscra](https://x.com/oscra).
+- No program, no vault, no server wallet, no private key in any environment variable.
+- Signed records: stateless HMAC nonces, five-minute window, single use per nonce, canonical ed25519 signatures only.
+- Writes fail closed when the store is missing or down; one vote per wallet per poll.
+- Read relay: method allowlist, size caps, token-account queries limited to the site's mints, per-IP budgets with a
+  site-wide ceiling for callers without a trusted IP.
+- Jupiter, Pyth and the xStocks issuer are third parties with their own risks. Nothing here has been audited.
 
 ## Contributing
 
-Issues and pull requests are welcome. Please keep changes focused, run the tests above, and describe what you changed and
-why. To get the code, download the ZIP from GitHub or fork the repository.
+Issues and pull requests are welcome. Please keep changes small, run `npm test`, `npx tsc --noEmit` and `npx eslint src`
+before opening a pull request, and describe how you checked the change. To work on the code, download the ZIP or fork
+the repository.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).
