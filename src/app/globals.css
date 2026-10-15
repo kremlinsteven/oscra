@@ -1,0 +1,392 @@
+@import "tailwindcss";
+
+/*
+ * OSCRA visual language: a pale stone page, near-black ink, tight grotesk headlines that fade from grey into
+ * black, pill controls, rounded cards, and dark "instrument" panels for anything live. One accent: the lime of
+ * the OSCRA helmet (#c4f01e), used as a fill with dark text; on light surfaces accent text uses the deep olive.
+ */
+
+:root {
+  --bg: #f1f1ee;
+  --card: #ffffff;
+  --card-2: #f7f7f4;
+  --ink: #0d0e0c;
+  --ink-2: #33352f;
+  --mute: #74736d;
+  --faint: #aeada7;
+  --line: #e3e2dd;
+  --line-2: #cfcec8;
+  --night: #10120e;
+  --night-2: #191c16;
+  --night-3: #23271f;
+  --night-line: rgb(255 255 255 / 0.09);
+  --night-ink: #f1f4ea;
+  --night-mute: #9ca394;
+  --lime: #c4f01e;
+  --lime-2: #d9f77a;
+  --lime-soft: #eef7cf;
+  --olive: #3d5600;
+  --good: #3b8a2c;
+  --bad: #c2412d;
+  --warn: #9a6c00;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@theme inline {
+  --font-sans: var(--font-oscra-sans), "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-oscra-mono), ui-monospace, Menlo, monospace;
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-mute: var(--mute);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-night: var(--night);
+  --color-night-2: var(--night-2);
+  --color-night-3: var(--night-3);
+  --color-night-line: var(--night-line);
+  --color-night-ink: var(--night-ink);
+  --color-night-mute: var(--night-mute);
+  --color-lime: var(--lime);
+  --color-lime-2: var(--lime-2);
+  --color-lime-soft: var(--lime-soft);
+  --color-olive: var(--olive);
+  --color-good: var(--good);
+  --color-bad: var(--bad);
+  --color-warn: var(--warn);
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+    color-scheme: light;
+    scroll-behavior: smooth;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15.5px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  ::selection {
+    background: var(--lime);
+    color: var(--ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--olive);
+    outline-offset: 2px;
+  }
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .shell {
+    width: 100%;
+    max-width: 1240px;
+    margin-inline: auto;
+    padding-inline: 16px;
+  }
+  @media (min-width: 768px) {
+    .shell {
+      padding-inline: 28px;
+    }
+  }
+
+  /* Headlines: the first part in stone grey, the rest in ink. */
+  .display {
+    font-size: clamp(40px, 6vw, 68px);
+    line-height: 1.02;
+    font-weight: 500;
+    letter-spacing: -0.035em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  .headline {
+    font-size: clamp(32px, 4.4vw, 58px);
+    line-height: 1.04;
+    font-weight: 500;
+    letter-spacing: -0.034em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  .display .fade,
+  .headline .fade {
+    color: var(--faint);
+  }
+  .subhead {
+    font-size: 18px;
+    line-height: 1.35;
+    font-weight: 600;
+    letter-spacing: -0.018em;
+  }
+  .lead {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--mute);
+  }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--line-2);
+    border-radius: 6px;
+    background: var(--card-2);
+    padding: 3px 8px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mute);
+    white-space: nowrap;
+  }
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  .label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    border-radius: 999px;
+    padding: 0 18px;
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    transition:
+      background-color 0.18s var(--ease),
+      color 0.18s var(--ease),
+      border-color 0.18s var(--ease),
+      transform 0.18s var(--ease);
+  }
+  .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+  .btn-ink {
+    background: var(--ink);
+    color: #fff;
+  }
+  .btn-ink:not(:disabled):hover {
+    background: var(--ink-2);
+  }
+  .btn-lime {
+    background: var(--lime);
+    color: var(--ink);
+  }
+  .btn-lime:not(:disabled):hover {
+    background: var(--lime-2);
+  }
+  .btn-ghost {
+    border: 1px solid var(--line-2);
+    background: rgb(255 255 255 / 0.6);
+    color: var(--ink);
+  }
+  .btn-ghost:not(:disabled):hover {
+    border-color: var(--ink);
+  }
+  .btn-night {
+    border: 1px solid var(--night-line);
+    background: rgb(255 255 255 / 0.05);
+    color: var(--night-ink);
+  }
+  .btn-night:not(:disabled):hover {
+    background: rgb(255 255 255 / 0.1);
+  }
+  .btn-sm {
+    min-height: 32px;
+    padding: 0 13px;
+    font-size: 12.5px;
+  }
+  .btn .dot-arrow {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    margin-right: -10px;
+    border-radius: 999px;
+    background: var(--lime);
+    color: var(--ink);
+  }
+
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--card);
+  }
+  .card-soft {
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--card-2);
+  }
+  .panel {
+    border: 1px solid var(--night-line);
+    border-radius: 22px;
+    background: var(--night);
+    color: var(--night-ink);
+  }
+  .panel .label {
+    color: var(--night-mute);
+  }
+  .panel-row {
+    border-top: 1px solid var(--night-line);
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .chip-clear {
+    background: rgb(196 240 30 / 0.16);
+    color: var(--lime);
+  }
+  .chip-watch {
+    background: rgb(240 190 60 / 0.14);
+    color: #f0c45a;
+  }
+  .chip-against {
+    background: rgb(240 100 80 / 0.14);
+    color: #f48a76;
+  }
+  .chip-light-clear {
+    background: var(--lime-soft);
+    color: var(--olive);
+  }
+  .chip-light-watch {
+    background: #fbf0d4;
+    color: var(--warn);
+  }
+  .chip-light-against {
+    background: #fbe1dc;
+    color: var(--bad);
+  }
+
+  .field {
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid var(--line-2);
+    border-radius: 12px;
+    background: var(--card);
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .field:focus {
+    border-color: var(--ink);
+    outline: none;
+  }
+  .field-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .hint {
+    margin-top: 5px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--mute);
+  }
+
+  .prose-oscra p {
+    margin-top: 0.9em;
+    color: var(--ink-2);
+  }
+  .prose-oscra h2 {
+    margin-top: 2.2em;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .prose-oscra h3 {
+    margin-top: 1.6em;
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .prose-oscra ul {
+    margin-top: 0.8em;
+    list-style: disc;
+    padding-left: 1.2em;
+    color: var(--ink-2);
+  }
+  .prose-oscra li + li {
+    margin-top: 0.35em;
+  }
+  .prose-oscra a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .prose-oscra strong {
+    color: var(--ink);
+  }
+
+  .marquee {
+    display: flex;
+    width: max-content;
+    animation: oscra-slide 48s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee {
+      animation: none;
+    }
+  }
+  .grid-paper {
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+  .scroll-x {
+    min-width: 0;
+    overflow-x: auto;
+  }
+}
+
+@keyframes oscra-slide {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes oscra-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.pulse {
+  animation: oscra-pulse 1.8s ease-in-out infinite;
+}
