@@ -58,6 +58,23 @@ Never on Vercel: NEXT_DIST_DIR, STORE_KEY_PREFIX. Old ROBINHOOD_* / WALLETCONNEC
   (practice and real tabs): 0 layout problems, 0 console errors.
 - Grep for the brief's list is 0 outside this file, matched as whole words ("pons" as a word: NextResponse contains it).
 
+## Audit (16 Oct 2026, later) — commits b5f7142 + next (not pushed)
+- Jupiter Recurring checked live (createOrder probes, no tx signed/sent): >= 2 orders, >= 50 USDC PER ORDER (so >= 100 USDC
+  total; a small tolerance lets 49 pass), interval/startAt unrestricted by Jupiter (1 h..90 d is our own limit), minPrice/maxPrice
+  = USDC per output token (decoded open_dca_v2: minOut = perCycle/maxPrice, maxOut = perCycle/minPrice), works for xStocks.
+  getRecurringOrders amounts are UI decimals (raw* fields alongside), 10 per page -> listRecurring now reads up to 5 pages.
+  Docs now say Recurring v1 is "no longer actively maintained, superseded by DCA" (Trigger v2: API key + JWT + Privy vault,
+  $10/round, max 10 active). lite-api.jup.ag grace period ended 30 Jun 2026 but still answers; api.jup.ag keyless = 0.5 RPS.
+- Fixed: SOL copy fills were unrecordable (Jupiter wraps/unwraps inside the swap, so no wSOL token delta) -> lib/server/
+  txfacts.ts counts native lamports (+fee) as wSOL; record-fill now requires a follow from before the idea, swap blockTime >=
+  idea.at, idea not handled (checked before fill-sig SET NX); readTx retries 3x. Wallet SOL holding = native + wSOL.
+- Fixed: browser RPC default = solana-rpc.publicnode.com (mainnet-beta 403s any browser Origin); server keeps mainnet-beta.
+- Fixed copy: /pricing meta (practice fee presented as real), /contracts Memo anchoring said as built, JSON-LD "EVM wallet".
+- /api/review success now edge-cached (s-maxage 300): GeckoTerminal 429s shared IPs, live xStocks reviews were intermittently 503.
+- Security headers added (next.config.ts): X-Frame-Options DENY + CSP frame-ancestors 'none', nosniff, Referrer-Policy.
+- npm test 37/37, tsc, eslint clean, build OK, wallet-qa 28/28, check-layout 0 problems / 0 console errors, seo-check all
+  pass (live + local).
+
 ## Status (16 Oct 2026, end of Solana move)
 - Internal main: 1b5d3da (EVM removal), c4d488d (Solana move), docs commit; NOT pushed (the lead pushes). ../public untouched.
 - Server: http://localhost:5120 (next start) running. Nothing deployed; no program exists.
@@ -66,8 +83,12 @@ Never on Vercel: NEXT_DIST_DIR, STORE_KEY_PREFIX. Old ROBINHOOD_* / WALLETCONNEC
 - Fee share/discount are practice: a real version needs custody or a program (excluded). Default: practice, labelled.
 - Poll thresholds 500,000 to open, weight = balance at vote time (no snapshot). OK?
 - Optional Memo anchoring of records not built yet (rule B says optional).
-- KV for records on Vercel (kv-gateway `oscra`) must be registered before follows/ideas/votes work on the live site.
+- KV for records on Vercel: live /api/records answers configured:true (checked 16 Oct audit), so the store is set.
 - xStocks issuer powers (pause/permanent delegate) disclosed on /risk and /contracts. Keep these ten markets?
+- Polls: balance at vote time + no snapshot means tokens can be moved to a second wallet and vote again. Snapshot
+  (e.g. balance at poll open via getSignaturesForAddress history) or accept as advisory-only?
+- Jupiter: Recurring v1 is unmaintained and lite-api is past its grace period. Move to api.jup.ag (free key in the browser,
+  0.5 RPS keyless) and/or plan Trigger v2 DCA (needs API key + JWT + Privy vault: custody question)?
 
 ---------------------------------------------------------------- history (Robinhood Chain build, before 16 Oct 2026)
 

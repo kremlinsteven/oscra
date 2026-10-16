@@ -9,6 +9,20 @@ const nextConfig: NextConfig = {
   htmlLimitedBots: /.*/,
   // Lets a second build (local fork tests) live next to the production one.
   distDir: process.env.NEXT_DIST_DIR || ".next",
+  // The workspace asks wallets to sign, so no other site may frame it (clickjacking).
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
