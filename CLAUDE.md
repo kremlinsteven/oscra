@@ -25,7 +25,7 @@ What it is now: non-custodial trading workspace on Solana. No OSCRA program, no 
 - Markets (src/config/lanes.ts, verified on-chain 16 Oct): SOL (wSOL) + NVDAx SPYx QQQx AAPLx GOOGLx TSLAx MSFTx AMZNx METAx
   (Xs… Token-2022 mints, 8 decimals, issuer has permanent delegate + pause + scaled UI amount, transfer hook program = none).
   Pyth feeds "Crypto.<SYM>X/USD" ids in lanes.ts. USDC EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.
-- CA: `const CA` in src/config/brand.ts, placeholder "0xxxx…" (fails the base58 check). pump.fun mint -> pill, token page
+- CA: `const CA` in src/config/brand.ts = `ERTKittq5tJC4x9VhC2WP6thRNhKMZ8WYosshmcPpump` (real since 16 Oct). pump.fun mint -> pill, token page
   (pump.fun + Dexscreener buttons), TokenFacts (supply/decimals + Token-2022 metadata), poll weights. Then `npx tsc --noEmit`.
 - Records security (lead review 16 Oct): stateless nonce = rand.HMAC(key, wallet|issuedAt|rand), key SET NX in the store;
   5 min window; replay keyed on the nonce rand (`used:<rand>` SET NX), never on signature bytes; S >= L refused;
@@ -107,8 +107,9 @@ run from the user's wallet through OscraRunbook under user-written limits; rule-
   language, own grids, all copy fresh (5-gram overlap 0 of 9,245, ../referensi/qa/ngram.mjs).
 
 ## CA
-`const CA` in src/config/brand.ts (placeholder). Placeholder -> navbar pill "At launch" (disabled), footer/token "Contract address
-coming soon". Real CA (0x + 40 hex; check name/symbol on-chain) switches on copy, explorer link, Pons button, token facts and
+`const CA` in src/config/brand.ts. Real since 16 Oct: `ERTKittq5tJC4x9VhC2WP6thRNhKMZ8WYosshmcPpump` (OSCRA / OSCRA, Token-2022, 6 decimals,
+1B supply, mint and freeze authority null). A placeholder would show navbar pill "At launch" (disabled), footer/token "Contract address
+coming soon". Real CA (base58 32-44; check name/symbol on-chain) switches on copy, explorer link, Pons button, token facts and
 the Keel deploy step. Then `npx tsc --noEmit`.
 
 ## Routes

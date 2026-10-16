@@ -3,7 +3,7 @@
 // The navbar copy pill, the footer, the token page, poll weights and every explorer link derive from it.
 // Anything that is not a Solana base58 address is treated as "not launched yet".
 
-const CA = "0xxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+const CA = "ERTKittq5tJC4x9VhC2WP6thRNhKMZ8WYosshmcPpump";
 
 /**
  * True once the domain points at this deployment. While false, the production *.vercel.app host is
