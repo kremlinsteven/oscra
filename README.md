@@ -3,7 +3,7 @@
 OSCRA is a non-custodial workspace for trading automation on Solana. Recurring buys and copied trades run from your own
 wallet under limits you write, and a rule-based review explains a market before you commit.
 
-Website: https://oscra.xyz · X: [@oscra](https://x.com/oscra)
+Website: https://oscra.xyz · X: [@oscraxyz](https://x.com/oscraxyz)
 
 ## The problem
 

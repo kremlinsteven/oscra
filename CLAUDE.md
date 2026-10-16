@@ -97,7 +97,7 @@ run from the user's wallet through OscraRunbook under user-written limits; rule-
 (OscraKeel: USDG fee share, holder fee discount, advisory polls).
 
 ## Identity
-- Name OSCRA (all caps, as the owner writes it), ticker $OSCRA, domain oscra.xyz, X https://x.com/oscra (@oscra).
+- Name OSCRA (all caps, as the owner writes it), ticker $OSCRA, domain oscra.xyz, X https://x.com/oscraxyz (@oscraxyz).
 - Slogan "Automate With Control. Trade With Confidence." · Tagline "Oscra: Non-custodial trading automation. AI review. Visible controls. Your assets stay yours."
 - Single source: src/config/brand.ts. Port 5120 (brief said 4930 = taken). Folder 2026/oktober/16/oscra (brief said oneleft: wrong).
 - Internal repo git@github-oscra:kremlinsteven/oscra.git (deploy key made by the lead). Public repo: none yet -> BRAND.github

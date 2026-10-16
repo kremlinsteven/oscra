@@ -19,7 +19,7 @@ const NAME = "OSCRA";
 const SLUG = "oscra";
 const TICKER = "OSCRA";
 const DOMAIN = "oscra.xyz";
-const X_HANDLE = "oscra";
+const X_HANDLE = "oscraxyz";
 
 export const BRAND = {
   name: NAME,
